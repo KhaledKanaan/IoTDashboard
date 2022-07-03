@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/cardview_light_background"
+    android:padding="0dp">
+
+    <LinearLayout
+        android:id="@+id/band"
+        android:layout_width="match_parent"
+        android:layout_height="1.5dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/separator_2"
+        android:orientation="horizontal">
+
+    </LinearLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+
+        android:id="@+id/topicTagTextInputLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/band"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="13dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="3dp"
+        android:hint="Tag (unique)"
+        app:boxStrokeColor="@color/color_4"
+        app:boxStrokeWidth="1dp"
+        app:hintTextColor="@color/color_4">
+
+        <EditText
+            android:id="@+id/topicTag"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:cursorVisible="true"
+            android:textCursorDrawable="@null" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+
+        android:id="@+id/topicNameTextInputLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/topicTagTextInputLayout"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="3dp"
+        android:hint="Name/Description (optional)"
+        app:boxStrokeColor="@color/color_4"
+        app:boxStrokeWidth="1dp"
+        app:hintTextColor="@color/color_4">
+
+        <EditText
+            android:id="@+id/topicName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:cursorVisible="true"
+            android:textCursorDrawable="@null" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <TextView
+        android:id="@+id/typeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/topicNameTextInputLayout"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="8dp"
+        android:text="Type:"
+        android:textSize="17sp">
+
+    </TextView>
+
+    <RadioGroup
+        android:id="@+id/typeRadioSelection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/typeTextView"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="15dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/analogRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:checked="true"
+
+            android:text="Analog">
+
+        </RadioButton>
+
+        <RadioButton
+            android:id="@+id/digitalRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+
+            android:text="Digital">
+
+        </RadioButton>
+
+        <RadioButton
+            android:id="@+id/multistateRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:text="Text">
+
+        </RadioButton>
+
+    </RadioGroup>
+    <!--
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Access:"
+            android:layout_below="@id/typeRadioSelection"
+            android:id="@+id/accessTextView"
+            android:textSize="17sp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="15dp">
+
+        </TextView>
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/accessTextView"
+            android:gravity="center"
+            android:layout_marginTop="15dp"
+            android:id="@+id/accessRadioSelection"
+            >
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/RWRadioButton"
+                android:text="RW"
+                android:checked="true"
+                android:layout_marginEnd="25dp">
+
+            </RadioButton>
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/RRadioButton"
+                android:text="R"
+                android:layout_marginEnd="30dp"
+                >
+
+            </RadioButton>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/WRadioButton"
+                android:text="W">
+
+            </RadioButton>
+
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Initial Value:"
+            android:layout_below="@id/accessRadioSelection"
+            android:id="@+id/initialValueTitle"
+            android:textSize="17sp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="15dp"
+            >
+
+        </TextView>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/accessRadioSelection"
+            android:layout_toRightOf="@id/initialValueTitle"
+            android:id="@+id/initialValue"
+            android:textSize="17sp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="15dp">
+
+        </EditText>
+        -->
+
+</RelativeLayout>

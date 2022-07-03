@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/cardview_light_background"
+    android:padding="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:background="#53AFDA"
+        android:layout_marginTop="10dp"
+        android:id="@+id/band"
+        android:orientation="horizontal">
+
+    </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/topicNameTitle"
+        android:layout_below="@+id/band"
+        android:layout_marginTop="15dp"
+        android:text="Topic Name:"
+        android:layout_marginEnd="15dp"
+        android:layout_marginStart="10dp"
+        android:textSize="16sp"
+        >
+    </TextView>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/topicName"
+        android:layout_below="@+id/band"
+        android:layout_toRightOf="@id/topicNameTitle"
+        android:layout_marginTop="15dp"
+        android:textSize="16sp"
+        >
+    </TextView>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/topicTagTitle"
+        android:layout_below="@+id/topicNameTitle"
+        android:layout_marginTop="15dp"
+        android:text="Topic Tag:"
+        android:layout_marginEnd="15dp"
+        android:layout_marginStart="10dp"
+        android:textSize="16sp"
+        >
+    </TextView>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/topicTag"
+        android:layout_below="@+id/topicName"
+        android:layout_marginTop="15dp"
+        android:layout_toRightOf="@id/topicTagTitle"
+        android:textSize="16sp"
+        >
+    </TextView>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Access:"
+        android:layout_below="@id/topicTag"
+        android:id="@+id/accessTextView"
+        android:textSize="16sp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="15dp">
+
+    </TextView>
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/accessTextView"
+        android:gravity="center"
+        android:layout_marginTop="15dp"
+        android:id="@+id/accessRadioSelection"
+        >
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/RWRadioButton"
+            android:text="Read/Write"
+            android:checked="true"
+            android:layout_marginEnd="20dp">
+
+        </RadioButton>
+
+<!--        <RadioButton-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:id="@+id/WRadioButton"-->
+<!--            android:text="Write Only"-->
+<!--            android:layout_marginEnd="15dp">-->
+
+<!--        </RadioButton>-->
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/RRadioButton"
+            android:text="Read Only">
+
+        </RadioButton>
+
+    </RadioGroup>
+
+
+<!--    <TextView-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Initial Value:"-->
+<!--        android:layout_below="@id/accessRadioSelection"-->
+<!--        android:id="@+id/initialValueTitle"-->
+<!--        android:textSize="16sp"-->
+<!--        android:layout_marginStart="10dp"-->
+<!--        android:layout_marginTop="20dp"-->
+<!--        >-->
+
+<!--    </TextView>-->
+
+<!--    <RadioGroup-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:layout_below="@id/initialValueTitle"-->
+<!--        android:gravity="center"-->
+<!--        android:layout_marginTop="15dp"-->
+<!--        android:id="@+id/OnOffRadioSelection"-->
+<!--        >-->
+<!--        <RadioButton-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:id="@+id/OnRadioButton"-->
+<!--            android:text="On"-->
+<!--            android:layout_marginEnd="20dp">-->
+<!--            -->
+<!--        </RadioButton>-->
+<!--            -->
+<!--        <RadioButton-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:id="@+id/OffRadioButton"-->
+<!--            android:checked="true"-->
+<!--            android:text="Off">-->
+
+<!--        </RadioButton>-->
+
+<!--    </RadioGroup>-->
+
+</RelativeLayout>

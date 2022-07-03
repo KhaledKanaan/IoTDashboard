@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/cardview_light_background"
+    android:padding="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1.5dp"
+        android:background="@drawable/separator_2"
+        android:layout_marginTop="5dp"
+        android:id="@+id/band"
+        android:orientation="horizontal">
+
+    </LinearLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tag (unique)"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="3dp"
+        android:layout_marginTop="13dp"
+        app:hintTextColor="@color/color_4"
+        app:boxStrokeWidth="1dp"
+        app:boxStrokeColor="@color/color_4"
+        android:id="@+id/topicTagTextInputLayout"
+        android:layout_below="@+id/band"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        >
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:id="@+id/thingTag"
+            android:cursorVisible="true"
+            android:textCursorDrawable="@null"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Name/Description (optional)"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="3dp"
+        android:layout_marginTop="3dp"
+        app:hintTextColor="@color/color_4"
+        app:boxStrokeWidth="1dp"
+        app:boxStrokeColor="@color/color_4"
+        android:id="@+id/topicNameTextInputLayout"
+        android:layout_below="@id/topicTagTextInputLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        >
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:id="@+id/thingName"
+            android:cursorVisible="true"
+            android:textCursorDrawable="@null"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+</RelativeLayout>

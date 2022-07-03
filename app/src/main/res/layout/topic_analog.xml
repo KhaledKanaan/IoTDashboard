@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@null">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/topicCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="9dp"
+        android:clickable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="3dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+
+        >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            >
+
+            <ImageView
+                android:id="@+id/mcuImageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="3dp"
+                android:layout_marginTop="3dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="1dp"
+                android:src="@drawable/gauge" />
+
+            <LinearLayout
+                android:id="@+id/nameLinearLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tagLinearLayout"
+                android:layout_marginStart="1dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="5dp"
+                android:layout_toStartOf="@id/separator"
+                android:layout_toEndOf="@id/mcuImageView"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Desc.:"
+                    android:textColor="#1D2551"
+                    android:textStyle="italic" />
+
+                <TextView
+                    android:id="@+id/topicName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:text="Undefined" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/tagLinearLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="1dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="5dp"
+                android:layout_toStartOf="@id/separator"
+                android:layout_toEndOf="@id/mcuImageView"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tag:    "
+                    android:textColor="#1D2551"
+                    android:textStyle="italic" />
+
+                <TextView
+                    android:id="@+id/topicTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:text="Undefined" />
+
+            </LinearLayout>
+
+            <!--            <LinearLayout-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:orientation="vertical"-->
+            <!--                android:layout_toEndOf="@id/mcuImageView"-->
+            <!--                android:layout_marginTop="10dp"-->
+            <!--                android:layout_marginStart="5dp"-->
+            <!--                android:id="@+id/nameLinearLayout"-->
+            <!--                >-->
+
+            <!--                <TextView-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:text="Name:"-->
+            <!--                    android:textStyle="italic"-->
+            <!--                    android:textColor="#1D2551"-->
+            <!--                    >-->
+            <!--                </TextView>-->
+
+            <!--                <TextView-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:text="Undefined"-->
+            <!--                    android:id="@+id/topicName">-->
+            <!--                </TextView>-->
+
+            <!--            </LinearLayout>-->
+
+            <!--            <LinearLayout-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:orientation="vertical"-->
+            <!--                android:layout_toEndOf="@id/nameLinearLayout"-->
+            <!--                android:layout_toLeftOf="@id/separator"-->
+            <!--                android:layout_marginEnd="5dp"-->
+            <!--                android:layout_marginTop="10dp"-->
+            <!--                android:layout_marginStart="25dp"-->
+            <!--                android:id="@+id/tagLinearLayout">-->
+
+            <!--                <TextView-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:text="Tag:"-->
+            <!--                    android:textStyle="italic"-->
+            <!--                    android:textColor="#1D2551"-->
+            <!--                    >-->
+            <!--                </TextView>-->
+
+            <!--                <TextView-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:text="Undefined"-->
+            <!--                    android:id="@+id/topicTag">-->
+            <!--                </TextView>-->
+
+            <!--            </LinearLayout>-->
+
+            <ImageButton
+                android:id="@+id/deleteImageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_toEndOf="@id/separator"
+                android:clickable="true"
+                android:elevation="10dp"
+                android:onClick="deleteTopic"
+                android:src="@drawable/ic_baseline_delete_30">
+
+            </ImageButton>
+
+            <!--            <ImageButton-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_toLeftOf="@id/deleteImageButton"-->
+            <!--                android:layout_marginTop="5dp"-->
+            <!--                android:layout_marginEnd="5dp"-->
+            <!--                android:id="@+id/editImageButton"-->
+            <!--                android:src="@drawable/ic_baseline_edit_30"-->
+            <!--                android:clickable="true"-->
+            <!--                android:onClick="editTopic"-->
+            <!--                android:elevation="10dp"-->
+            <!--                >-->
+
+            <!--            </ImageButton>-->
+
+            <View
+                android:id="@+id/separator"
+                android:layout_width="1dp"
+                android:layout_height="140dp"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="1dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="1dp"
+                android:layout_toStartOf="@id/invisibleMultiState"
+                android:background="@drawable/separator">
+
+            </View>
+
+            <TextView
+                android:id="@+id/topicValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/mcuImageView"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="1dp"
+                android:layout_toStartOf="@id/increaseImageButton"
+                android:text=""
+                android:textAlignment="center"
+                android:textColor="@color/color_1"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+            <!--            <TextView-->
+            <!--                android:id="@+id/bufferedTopicValue"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_below="@+id/topicValue"-->
+            <!--                android:layout_marginStart="8dp"-->
+            <!--                android:layout_marginTop="10dp"-->
+            <!--                android:layout_marginEnd="5dp"-->
+            <!--                android:layout_marginRight="12dp"-->
+            <!--                android:layout_marginBottom="1dp"-->
+            <!--                android:layout_toLeftOf="@id/increaseImageButton"-->
+            <!--                android:text="0"-->
+            <!--                android:textColor="#373737"-->
+            <!--                android:textSize="15sp"-->
+            <!--                android:visibility="visible">-->
+            <!--                -->
+            <!--            </TextView>-->
+
+            <ImageView
+                android:id="@+id/feedbackSignal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/topicValue"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginBottom="2dp"
+                android:src="@drawable/ic_baseline_feedback_24"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/fake"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/topicValue"
+                android:layout_marginEnd="5dp"
+                android:layout_toStartOf="@id/decreaseImageButton"
+                android:src="@drawable/ic_baseline_feedback_24"
+                android:visibility="invisible" />
+
+            <TextView
+                android:id="@+id/unitTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/topicValue"
+                android:layout_marginStart="3dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginBottom="2dp"
+                android:layout_toStartOf="@id/fake"
+                android:layout_toEndOf="@id/feedbackSignal"
+                android:text=""
+                android:textAlignment="center"
+                android:textColor="@color/color_1"
+                android:textSize="20sp"
+                android:visibility="visible" />
+
+            <ImageButton
+                android:id="@+id/settingsImageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/deleteImageButton"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="5dp"
+                android:layout_toEndOf="@id/separator"
+                android:clickable="true"
+                android:elevation="10dp"
+                android:onClick="topicSettings"
+                android:src="@drawable/ic_baseline_settings_30">
+
+            </ImageButton>
+
+            <TextView
+                android:id="@+id/topicType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/settingsImageButton"
+                android:layout_alignEnd="@+id/settingsImageButton"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
+                android:text="Analog"
+                android:textColor="@color/color_1"
+                android:textSize="15sp"
+                android:textStyle="bold">
+
+            </TextView>
+
+            <TextView
+                android:id="@+id/invisibleMultiState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/settingsImageButton"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
+                android:text="MultiState"
+                android:textColor="@color/color_3"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:visibility="invisible" />
+
+            <TextView
+                android:id="@+id/topicAccess"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/topicType"
+                android:layout_alignEnd="@+id/settingsImageButton"
+                android:layout_marginTop="3dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="1dp"
+                android:text="Read/Write"
+                android:textColor="#373737"
+                android:textSize="10sp"
+                android:textStyle="italic"
+                android:visibility="visible" />
+
+            <TextView
+                android:id="@+id/step"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/topicType"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="1dp"
+                android:layout_toStartOf="@id/topicAccess"
+                android:text="1"
+                android:textColor="#373737"
+                android:textSize="8sp"
+                android:textStyle="italic"
+                android:visibility="invisible" />
+
+            <!--            <TextView-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:id="@+id/highLimitTextView"-->
+            <!--                android:layout_below="@+id/topicType"-->
+            <!--                android:layout_toLeftOf="@id/step"-->
+            <!--                android:text="100"-->
+            <!--                android:layout_marginTop="2dp"-->
+            <!--                android:layout_marginEnd="1dp"-->
+            <!--                android:textStyle="italic"-->
+            <!--                android:textColor="#373737"-->
+            <!--                android:textSize="8sp"-->
+            <!--                android:visibility="visible">-->
+            <!--            </TextView>-->
+
+            <!--            <TextView-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:id="@+id/lowLimitTextView"-->
+            <!--                android:layout_below="@+id/topicType"-->
+            <!--                android:layout_toLeftOf="@id/highLimitTextView"-->
+            <!--                android:text="0"-->
+            <!--                android:layout_marginTop="2dp"-->
+            <!--                android:layout_marginEnd="1dp"-->
+            <!--                android:textStyle="italic"-->
+            <!--                android:textColor="#373737"-->
+            <!--                android:textSize="8sp"-->
+            <!--                android:visibility="visible">-->
+            <!--            </TextView>-->
+
+            <!--            <TextView-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:id="@+id/highLimitNotificationValueTextView"-->
+            <!--                android:layout_below="@+id/topicType"-->
+            <!--                android:layout_toLeftOf="@id/lowLimitTextView"-->
+            <!--                android:text="null"-->
+            <!--                android:layout_marginTop="2dp"-->
+            <!--                android:layout_marginEnd="1dp"-->
+            <!--                android:textStyle="italic"-->
+            <!--                android:textColor="#373737"-->
+            <!--                android:textSize="8sp"-->
+            <!--                android:visibility="visible">-->
+            <!--            </TextView>-->
+
+            <!--            <TextView-->
+            <!--                android:id="@+id/lowLimitNotificationValueTextView"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_below="@+id/topicType"-->
+            <!--                android:layout_marginTop="3dp"-->
+            <!--                android:layout_marginEnd="1dp"-->
+            <!--                android:layout_marginRight="2dp"-->
+            <!--                android:layout_toLeftOf="@id/highLimitNotificationValueTextView"-->
+            <!--                android:text="null"-->
+            <!--                android:textColor="#373737"-->
+            <!--                android:textSize="8sp"-->
+            <!--                android:textStyle="italic"-->
+            <!--                android:visibility="visible">-->
+            <!--                -->
+            <!--            </TextView>-->
+
+            <ImageButton
+                android:id="@+id/increaseImageButton"
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/nameLinearLayout"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="1dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="0dp"
+                android:layout_toStartOf="@id/separator"
+                android:clickable="true"
+                android:elevation="10dp"
+                android:onClick="increaseValue"
+                android:src="@drawable/ic_baseline_arrow_up_30" />
+
+            <ImageButton
+                android:id="@+id/decreaseImageButton"
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/increaseImageButton"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="2dp"
+                android:layout_toStartOf="@id/separator"
+                android:clickable="true"
+                android:elevation="10dp"
+                android:onClick="decreaseValue"
+                android:src="@drawable/ic_baseline_arrow_down_30" />
+
+
+        </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</RelativeLayout>

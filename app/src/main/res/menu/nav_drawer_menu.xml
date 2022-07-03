@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!--    <item android:title="Dashboard"-->
+    <!--        android:icon="@drawable/ic_baseline_dashboard_24"-->
+    <!--        android:id="@+id/homeItem"-->
+    <!--        android:enabled="true"-->
+    <!--        />-->
+
+    <item
+        android:id="@+id/connectToBrokerItem"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_sync_alt_24"
+        android:onClick="openConnectToFirebaseActivity"
+        android:title="Connect to Firebase" />
+
+    <item
+        android:id="@+id/login"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_login_24"
+        android:onClick="goToLoginActivity"
+        android:title="User login" />
+
+    <item
+        android:id="@+id/logout"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_logout_24"
+        android:onClick="logout"
+        android:title="User logout" />
+
+    <!--    <item android:title="Step by step"-->
+    <!--        android:icon="@drawable/ic_baseline_format_list_numbered_24"-->
+    <!--        android:id="@+id/stepByStepItem"-->
+    <!--        android:enabled="true"-->
+    <!--        />-->
+
+    <item
+        android:id="@+id/aboutItem"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_info_24"
+        android:title="About" />
+
+    <item
+        android:id="@+id/guideItem"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_info_24"
+        android:title="Guide">
+        <menu>
+<!--            <item-->
+<!--                android:id="@+id/guideCreateFbRtDBItem"-->
+<!--                android:enabled="true"-->
+<!--                android:icon="@drawable/ic_baseline_help_24"-->
+<!--                android:title="Create Firebase RtDB" />-->
+<!--            <item-->
+<!--                android:id="@+id/guideConnectToFbDBItem"-->
+<!--                android:enabled="true"-->
+<!--                android:icon="@drawable/ic_baseline_help_24"-->
+<!--                android:title="Connect to Firebase" />-->
+            <item
+                android:id="@+id/guideStepByStepVideoItem"
+                android:enabled="true"
+                android:icon="@drawable/ic_baseline_playlist_play_24"
+                android:title="Step by step video" />
+
+
+        </menu>
+
+    </item>
+
+</menu>

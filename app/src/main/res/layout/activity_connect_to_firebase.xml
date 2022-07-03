@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ConnectToFirebaseActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/FirebaseConnectionToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_marginBottom="0dp"
+        android:background="@color/color_10"
+        android:elevation="0dp"
+        android:minHeight="?attr/actionBarSize"
+        android:textAlignment="center"
+        app:contentInsetLeft="0dp"
+        app:contentInsetStart="0dp"
+        app:contentInsetStartWithNavigation="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="5dp"
+                android:text="Firebase Connection"
+                android:textColor="@color/color_6"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/internetConnectionLed"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:layout_marginEnd="10dp"
+                android:elevation="5dp"
+                android:foregroundGravity="bottom"
+                app:cardBackgroundColor="@color/black"
+                app:cardCornerRadius="8dp">
+
+                <ImageView
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_baseline_wifi_15">
+
+                </ImageView>
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/firebaseConnectionLed"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_centerInParent="true"
+                android:layout_marginEnd="5dp"
+                android:layout_toStartOf="@+id/internetConnectionLed"
+                android:elevation="5dp"
+                android:foregroundGravity="bottom"
+                app:cardBackgroundColor="@color/black"
+                app:cardCornerRadius="8dp">
+
+                <ImageView
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_baseline_storage_15">
+
+                </ImageView>
+            </androidx.cardview.widget.CardView>
+        </RelativeLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <View
+        android:id="@+id/edge"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginBottom="1dp"
+        android:background="@color/color_5"
+        app:layout_constraintTop_toBottomOf="@+id/FirebaseConnectionToolbar">
+
+    </View>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="0dp"
+        android:background="@color/color_10"
+        android:columnCount="1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edge">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:elevation="8dp"
+            app:cardCornerRadius="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="10dp"
+                android:orientation="vertical">
+
+                <com.google.android.material.textfield.TextInputLayout
+
+                    android:id="@+id/databaseUrlTextInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="3dp"
+                    android:hint="Database URL"
+                    app:boxStrokeColor="@color/color_4"
+                    app:boxStrokeWidth="1dp"
+                    app:hintTextColor="@color/color_4">
+
+                    <EditText
+                        android:id="@+id/databaseUrlEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:cursorVisible="true"
+                        android:textCursorDrawable="@null" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+
+                    android:id="@+id/apiKeyTextInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="3dp"
+                    android:hint="API key"
+                    app:boxStrokeColor="@color/color_4"
+                    app:boxStrokeWidth="1dp"
+                    app:hintTextColor="@color/color_4">
+
+                    <EditText
+                        android:id="@+id/apiKeyEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:cursorVisible="true"
+                        android:textCursorDrawable="@null" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+
+                    android:id="@+id/applicationIdTextInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="3dp"
+                    android:hint="Application ID"
+                    app:boxStrokeColor="@color/color_4"
+                    app:boxStrokeWidth="1dp"
+                    app:hintTextColor="@color/color_4">
+
+                    <EditText
+                        android:id="@+id/applicationIdEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:cursorVisible="true"
+                        android:textCursorDrawable="@null" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="15dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/browseForJsonFileButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:layout_margin="10dp"
+                        android:backgroundTint="@color/color_1"
+                        android:elevation="10dp"
+                        android:onClick="browseJsonFile"
+                        android:text="Browse"
+                        android:textAllCaps="false"
+                        android:textColor="@color/white"
+                        app:cornerRadius="0dp">
+
+                    </com.google.android.material.button.MaterialButton>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/connectionToFirebaseButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:layout_margin="10dp"
+                        android:backgroundTint="@color/color_1"
+                        android:elevation="10dp"
+                        android:onClick="connectDisconnectToFirebase"
+                        android:text="Connect"
+                        android:textAllCaps="false"
+                        android:textColor="@color/white"
+                        app:cornerRadius="0dp">
+
+                    </com.google.android.material.button.MaterialButton>
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

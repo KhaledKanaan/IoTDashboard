@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_10"
+    tools:context=".Topics">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/topicsToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:background="@color/color_10"
+        android:elevation="0dp"
+        android:minHeight="?attr/actionBarSize"
+        android:textAlignment="center"
+        app:contentInsetLeft="0dp"
+        app:contentInsetStart="0dp"
+        app:contentInsetStartWithNavigation="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/Title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    android:text="Topics"
+                    android:textColor="@color/color_6"
+                    android:textSize="21sp"
+                    android:textStyle="bold" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/internetConnectionLed"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerInParent="true"
+                    android:layout_marginEnd="10dp"
+                    android:elevation="5dp"
+                    android:foregroundGravity="bottom"
+                    app:cardBackgroundColor="@color/black"
+                    app:cardCornerRadius="8dp">
+
+                    <ImageView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_baseline_wifi_15">
+
+                    </ImageView>
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/firebaseConnectionLed"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_centerInParent="true"
+                    android:layout_marginEnd="5dp"
+                    android:layout_toStartOf="@+id/internetConnectionLed"
+                    android:elevation="5dp"
+                    android:foregroundGravity="bottom"
+                    app:cardBackgroundColor="@color/black"
+                    app:cardCornerRadius="8dp">
+
+
+                    <ImageView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_baseline_storage_15">
+
+                    </ImageView>
+
+                </androidx.cardview.widget.CardView>
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/thingDisplay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:layout_marginBottom="8dp"
+                android:elevation="15dp"
+                android:gravity="start"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="0dp"
+                    android:layout_marginBottom="0dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="0dp"
+                        android:layout_marginEnd="2dp"
+                        android:layout_weight="1"
+                        android:gravity="start"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="5dp"
+                            android:text="Th. tag:"
+                            android:textColor="@color/color_6"
+                            android:textSize="14sp">
+
+                        </TextView>
+
+                        <TextView
+                            android:id="@+id/thingTagInTopics"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/color_6"
+                            android:textSize="14sp"
+                            android:textStyle="bold">
+
+                        </TextView>
+
+                    </LinearLayout>
+
+                    <!--                        <View-->
+                    <!--                            android:layout_width="10dp"-->
+                    <!--                            android:layout_height="1dp"-->
+                    <!--                            android:background="@drawable/separator_2"-->
+                    <!--                            android:layout_marginTop="1dp"-->
+                    <!--                            android:layout_marginBottom="1dp"-->
+                    <!--                            android:layout_marginStart="1dp"-->
+                    <!--                            android:layout_marginEnd="1dp"-->
+                    <!--                            android:id="@+id/separator"-->
+                    <!--                            android:layout_gravity="center"-->
+                    <!--                            >-->
+
+                    <!--                        </View>-->
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="0dp"
+                        android:layout_weight="1"
+                        android:gravity="start"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="5dp"
+                            android:text="Th. desc.:"
+                            android:textColor="@color/color_6"
+                            android:textSize="14sp">
+
+                        </TextView>
+
+                        <TextView
+                            android:id="@+id/thingNameInTopics"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/color_6"
+                            android:textSize="14sp"
+                            android:textStyle="bold">
+
+                        </TextView>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <View
+        android:id="@+id/edge"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginBottom="1dp"
+        android:background="@color/color_5"
+        app:layout_constraintTop_toBottomOf="@+id/topicsToolbar">
+
+    </View>
+
+    <ScrollView
+        android:id="@+id/topicsScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/color_10"
+        android:columnCount="1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edge"
+        app:layout_constraintVertical_bias="1.0"
+        tools:layout_editor_absoluteX="0dp">
+
+        <GridLayout
+            android:id="@+id/topicsGridLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:columnCount="1"
+            android:paddingTop="9dp"
+            android:paddingBottom="61dp">
+
+        </GridLayout>
+
+    </ScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addThingFAB"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="@color/color_2"
+        android:clickable="true"
+        android:elevation="5dp"
+        android:onClick="addTopicWithFAB_Button"
+        android:src="@drawable/ic_baseline_add_30"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:tint="@color/color_5">
+
+    </com.google.android.material.floatingactionbutton.FloatingActionButton>
+
+
+    <!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        android:layout_marginBottom="10dp"-->
+    <!--        android:layout_marginEnd="10dp"-->
+    <!--        android:id="@+id/addTopicFAB"-->
+    <!--        android:src="@drawable/ic_baseline_add_30"-->
+    <!--        android:clickable="true"-->
+    <!--        android:elevation="8dp"-->
+    <!--        android:backgroundTint="#4EC8D8"-->
+    <!--        android:onClick="addTopicWithFAB_Button"-->
+    <!--        >-->
+
+    <!--    </com.google.android.material.floatingactionbutton.FloatingActionButton>-->
+
+</androidx.constraintlayout.widget.ConstraintLayout>

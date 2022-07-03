@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_2"
+    tools:context=".ConnectToBrokerActivity"
+
+    >
+
+<!--    <androidx.appcompat.widget.Toolbar-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:id="@+id/connectToBrokerToolbar"-->
+<!--        android:background="@android:color/transparent"-->
+<!--        android:minHeight="?attr/actionBarSize"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:title=""-->
+<!--        android:textAlignment="center"-->
+<!--        >-->
+
+<!--    </androidx.appcompat.widget.Toolbar>-->
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:gravity="center"
+
+        >
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            app:cardCornerRadius="5dp"
+            android:elevation="10dp"
+            android:layout_gravity="center"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="5dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center"
+
+                    >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MQTT Settings"
+                        android:textColor="@color/color_4"
+                        android:textStyle="bold"
+                        android:textSize="15sp"
+                        android:layout_margin="8dp"
+                        android:layout_centerInParent="true"
+                        android:layout_alignParentStart="true"
+                        >
+                    </TextView>
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:background="@color/black"
+                        android:layout_centerInParent="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="20dp"
+                        android:id="@+id/connectionStatusLed"
+                        android:elevation="10dp"
+                        >
+
+
+                    </androidx.cardview.widget.CardView>
+
+
+                </RelativeLayout>
+
+
+
+                <com.google.android.material.textfield.TextInputLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Host"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginTop="3dp"
+                    app:hintTextColor="@color/color_4"
+                    app:boxStrokeWidth="1dp"
+                    app:boxStrokeColor="@color/color_4"
+                    android:id="@+id/hostUrlTextInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    >
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:id="@+id/hostUrlEditText"
+                        android:text="4e33b147c0024181ae5078b42e499ad9.s1.eu.hivemq.cloud"
+                        />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center"
+                    android:gravity="center">
+
+                    <com.google.android.material.textfield.TextInputLayout
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Port"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="2dp"
+                        android:layout_marginBottom="3dp"
+                        android:layout_marginTop="3dp"
+                        app:hintTextColor="@color/color_4"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeColor="@color/color_4"
+                        android:id="@+id/portTextInputLayout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        >
+                        <EditText
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@null"
+                            android:inputType="number"
+                            android:text="8883"
+                            android:id="@+id/portEditText"
+                            />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="4"
+                        android:hint="Client ID"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginBottom="3dp"
+                        android:layout_marginTop="3dp"
+                        app:hintTextColor="@color/color_4"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeColor="@color/color_4"
+                        android:id="@+id/clientIdTextInputLayout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        >
+                        <EditText
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@null"
+                            android:text="khaled-kenaan@hotmail.com"
+                            android:id="@+id/clientIdEditText"
+                            />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Username"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginTop="3dp"
+                    app:hintTextColor="@color/color_4"
+                    app:boxStrokeWidth="1dp"
+                    app:boxStrokeColor="@color/color_4"
+                    android:id="@+id/usernameTextInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    >
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:text="iotdashboard"
+
+                        android:id="@+id/usernameEditText"
+                        />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Password"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginTop="3dp"
+                    app:hintTextColor="@color/color_4"
+                    app:boxStrokeWidth="1dp"
+                    app:boxStrokeColor="@color/color_4"
+                    android:id="@+id/passwordTextInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    >
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:inputType="textPassword"
+                        android:id="@+id/passwordEditText"
+                        android:text="Mpn70a278955a"
+                        />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center"
+                    android:gravity="center">
+
+                    <com.google.android.material.textfield.TextInputLayout
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.8"
+                        android:hint="QoS"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="2dp"
+                        android:layout_marginBottom="3dp"
+                        android:layout_marginTop="3dp"
+                        app:hintTextColor="@color/color_4"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeColor="@color/color_4"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        >
+                        <AutoCompleteTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@null"
+                            android:backgroundTint="@null"
+                            android:text="0"
+                            android:textAlignment="center"
+                            android:inputType="none"
+                            android:id="@+id/defaultQoSAutoCompleteTextView"
+                            />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="5"
+                        android:hint="Keep Alive"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:layout_marginBottom="3dp"
+                        android:layout_marginTop="3dp"
+                        app:hintTextColor="@color/color_4"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeColor="@color/color_4"
+                        android:id="@+id/keepAliveTextInputLayout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+
+                        >
+                        <EditText
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@null"
+                            android:inputType="number"
+                            android:text="60"
+                            android:id="@+id/keepAliveEditText"
+                            />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+
+                    <CheckBox
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checked="false"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="10dp"
+                        android:text="Retain"
+                        app:buttonTint="@color/color_1"
+                        android:textColor="@color/color_4"
+                        android:id="@+id/retainCheckBox"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+
+                        />
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center"
+                    android:gravity="center">
+
+                    <com.google.android.material.textfield.TextInputLayout
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="3"
+                        android:hint="MQTT Vesion"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="2dp"
+                        android:layout_marginBottom="3dp"
+                        android:layout_marginTop="3dp"
+                        app:hintTextColor="@color/color_4"
+                        app:boxStrokeWidth="1dp"
+                        app:boxStrokeColor="@color/color_4"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        >
+                        <AutoCompleteTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+
+                            android:background="@null"
+                            android:backgroundTint="@null"
+                            android:text="MQTT 5"
+                            android:inputType="none"
+                            android:id="@+id/mqttVersionAutoCompleteTextView"
+                            />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+
+
+                    <CheckBox
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checked="true"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="10dp"
+                        android:text="TLS"
+                        app:buttonTint="@color/color_1"
+                        android:textColor="@color/color_4"
+                        android:id="@+id/tlsCheckBox"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+
+
+                        />
+
+
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Last Will Topic"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginTop="3dp"
+                    app:hintTextColor="@color/color_4"
+                    app:boxStrokeWidth="1dp"
+                    app:boxStrokeColor="@color/color_4"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    >
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:id="@+id/lastWillTopicEditText"
+                        />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Last Will Message"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginTop="3dp"
+                    app:hintTextColor="@color/color_4"
+                    app:boxStrokeWidth="1dp"
+                    app:boxStrokeColor="@color/color_4"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    >
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@null"
+                        android:id="@+id/lastWillMessageEditText"
+                        />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/connectToBrokerButton"
+                    android:text="Connect"
+                    android:layout_width="150dp"
+                    android:layout_height="55dp"
+                    app:cornerRadius="5dp"
+                    android:backgroundTint="@color/color_1"
+                    android:elevation="10dp"
+                    android:textAllCaps="false"
+                    android:layout_gravity="end"
+                    android:layout_margin="5dp"
+                    android:textColor="@color/white"
+                    android:onClick="readParametersAndConnectToBroker">
+
+                </com.google.android.material.button.MaterialButton>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/disconnectFromBrokerButton"
+                    android:text="Disconnect"
+                    android:layout_width="150dp"
+                    android:layout_height="55dp"
+                    app:cornerRadius="5dp"
+                    android:backgroundTint="@color/color_1"
+                    android:elevation="10dp"
+                    android:textAllCaps="false"
+                    android:layout_gravity="end"
+                    android:layout_margin="5dp"
+                    android:textColor="@color/white"
+                    android:onClick="disconnectFromBroker">
+
+                </com.google.android.material.button.MaterialButton>
+
+
+            </LinearLayout>
+
+
+        </androidx.cardview.widget.CardView>
+
+    </ScrollView>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

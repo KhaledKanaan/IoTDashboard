@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.kandroid.iotdashboard">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_ALL_DOWNLOADS" />
+
+    <application
+        android:name=".App"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_adb_logo_1"
+        android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.IoTDashboard">
+
+        <activity
+            android:name=".LoginSemiPublicServerActivity"
+            android:parentActivityName=".MainActivity"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".SignUpInSemiPublicServerActivity"
+            android:parentActivityName=".LoginSemiPublicServerActivity"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".ConnectToFirebaseActivity"
+            android:parentActivityName=".MainActivity"/>
+        <activity
+            android:name=".MultiStateTopicConfigurationActivity"
+            android:parentActivityName=".Topics"/>
+        <activity
+            android:name=".DigitalTopicConfigurationActivity"
+            android:parentActivityName=".Topics"/>
+        <activity
+            android:name=".AnalogTopicConfigurationActivity"
+            android:parentActivityName=".Topics"/>
+        <activity
+            android:name=".LauncherActivity"
+            android:theme="@style/SplashTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+        </activity>
+<!--        <activity-->
+<!--            android:name=".SignUpActivity" />-->
+<!--        <activity-->
+<!--            android:name=".LoginActivity" />-->
+        <activity
+            android:name=".Topics"
+            android:parentActivityName=".MainActivity"/>
+        <activity
+            android:name=".ConnectToBrokerActivity"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".MainActivity" /> <!-- <service android:name=".KeepAliveMqttConnectionService"></service> -->
+        <service
+            android:name="org.eclipse.paho.android.service.MqttService" />
+        <service
+            android:name=".KeepAliveMqttConnectionService"
+            android:foregroundServiceType="connectedDevice" />
+        <service
+            android:name=".FireBaseCloudMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_baseline_notifications_active_24" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/alarm" />
+    </application>
+
+</manifest>
