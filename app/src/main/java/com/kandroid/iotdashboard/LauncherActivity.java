@@ -34,7 +34,7 @@ public class LauncherActivity extends AppCompatActivity {
             DATABASE_URL = "DatabaseUrl", API_KEY = "ApiKey", APPLICATION_ID = "ApplicationId", INTENT_TO_CONNECT = "intentToConnect",
             PACKAGE_NAME= "com.kandroid.iotdashboard", DEFAULT_DATABASE_URL = "", DEFAULT_API_KEY = "", DEFAULT_APPLICATION_ID = "",
             MAINTAINED_CONNECTION_POINT = "MaintainedConnectionPoint", INTENT_TO_LOGIN = "intentToLogin", DEFAULT_USER_EMAIL = "",
-            DEFAULT_USER_PASSWORD = "";
+            DEFAULT_USER_PASSWORD = "", CONDITIONS_AGREED = "conditionsAgreed";
     public static boolean lastLoginSuccess;
 
     @Override
@@ -44,39 +44,46 @@ public class LauncherActivity extends AppCompatActivity {
 
         sharedPreferences = getApplicationContext().getSharedPreferences(PACKAGE_NAME, Context.MODE_PRIVATE);
 
-        boolean intentToConnect = sharedPreferences.getBoolean(INTENT_TO_CONNECT, false);
-        if(intentToConnect){
-            connectToFireBaseDataBase();
-        }
+        boolean conditionsAgreed = sharedPreferences.getBoolean(CONDITIONS_AGREED, false);
 
-        new android.os.Handler(Looper.getMainLooper()).postDelayed(
-                new Runnable() {
-                    public void run() {
+        if(conditionsAgreed){
+            boolean intentToConnect = sharedPreferences.getBoolean(INTENT_TO_CONNECT, false);
+            if(intentToConnect){
+                connectToFireBaseDataBase();
+            }
 
-                        if(SERVER_TYPE.equals(SEMI_PUBLIC) || SERVER_TYPE.equals(PRIVATE)){
-                            Intent intent;
-                            intent = new Intent(getApplicationContext(), MainActivity.class);
-                            startActivity(intent);
-                        }
+            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                    new Runnable() {
+                        public void run() {
 
-                        else if(SERVER_TYPE.equals(PUBLIC)){
-
-                            lastLoginSuccess = sharedPreferences.getBoolean(LAST_LOGIN_SUCCESS, false);
-
-                            Intent intent;
-                            if(!lastLoginSuccess){
-                                intent = new Intent(getApplicationContext(), LoginSemiPublicServerActivity.class);
-                            }
-                            else{
+                            if(SERVER_TYPE.equals(SEMI_PUBLIC) || SERVER_TYPE.equals(PRIVATE)){
+                                Intent intent;
                                 intent = new Intent(getApplicationContext(), MainActivity.class);
+                                startActivity(intent);
                             }
-                            startActivity(intent);
+
+                            else if(SERVER_TYPE.equals(PUBLIC)){
+
+                                lastLoginSuccess = sharedPreferences.getBoolean(LAST_LOGIN_SUCCESS, false);
+
+                                Intent intent;
+                                if(!lastLoginSuccess){
+                                    intent = new Intent(getApplicationContext(), LoginSemiPublicServerActivity.class);
+                                }
+                                else{
+                                    intent = new Intent(getApplicationContext(), MainActivity.class);
+                                }
+                                startActivity(intent);
+                            }
+
                         }
-
-                    }
-                },
-                1000);
-
+                    },
+                    1000);
+        }
+        else{
+            Intent intent = new Intent(getApplicationContext(), Declaration.class);
+            startActivity(intent);
+        }
     }
 
     public void connectToFireBaseDataBase(){
@@ -122,7 +129,7 @@ public class LauncherActivity extends AppCompatActivity {
                 IoT_Database.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        Log.i(TAG, LauncherActivity.MAINTAINED_CONNECTION_POINT +" > "+ dataSnapshot.getValue());
+                        Log.i(TAG, MAINTAINED_CONNECTION_POINT +" > "+ dataSnapshot.getValue());
                     }
 
                     @Override
@@ -134,65 +141,4 @@ public class LauncherActivity extends AppCompatActivity {
         }
     }
 
-    public void loginCurrentActiveUser(){
-        if (!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
-
-            Log.i("flexx", "IN1");
-
-            DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
-            if(connectedRef!=null) {
-                connectedRef.addListenerForSingleValueEvent(new ValueEventListener(){
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        boolean isConnected = snapshot.getValue(Boolean.class);
-                        if (isConnected) {
-                            Log.i("flexx", "IN2");
-                            FirebaseAuth mAuth = FirebaseAuth.getInstance();
-                            if(mAuth!=null){
-
-                                Log.i("flexx", "IN3");
-                                String emailAddress = sharedPreferences.getString(USER_EMAIL, DEFAULT_USER_EMAIL);
-                                String password = sharedPreferences.getString(USER_PASSWORD, DEFAULT_USER_PASSWORD);
-
-                                if(!emailAddress.isEmpty() && !password.isEmpty()){
-
-                                    Log.i("flexx", "IN4");
-                                    try {
-                                        mAuth.signInWithEmailAndPassword(emailAddress, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                                if (task.isSuccessful()) {
-                                                    Log.i("flexx", "IN5");
-                                                    FirebaseUser currentUser = mAuth.getCurrentUser();
-
-                                                    if(currentUser != null){
-                                                        Log.i("flexx", "IN6");
-                                                        if(!currentUser.isEmailVerified()){
-                                                            Log.i("flexx", "IN7");
-                                                            mAuth.signOut();
-                                                            sharedPreferences.edit().putBoolean(LauncherActivity.INTENT_TO_LOGIN, false).apply();
-                                                        }
-                                                    }
-                                                }
-                                                else {
-                                                    Log.i(TAG, task.getException().getMessage());
-                                                }
-                                            }
-                                        });
-                                    }catch (Exception e){
-                                        Log.e(TAG, e.toString());
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
-            }
-        }
-    }
 }

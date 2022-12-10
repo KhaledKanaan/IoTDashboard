@@ -6,7 +6,6 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -21,29 +20,31 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.IoTDashboard">
-
+        <activity android:name=".PrivacyPolicy"></activity>
+        <activity android:name=".Declaration" />
+        <activity android:name=".EulaActivity" />
         <activity
             android:name=".LoginSemiPublicServerActivity"
-            android:parentActivityName=".MainActivity"
             android:configChanges="orientation"
-            android:screenOrientation="portrait"/>
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".SignUpInSemiPublicServerActivity"
-            android:parentActivityName=".LoginSemiPublicServerActivity"
             android:configChanges="orientation"
-            android:screenOrientation="portrait"/>
+            android:parentActivityName=".LoginSemiPublicServerActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ConnectToFirebaseActivity"
-            android:parentActivityName=".MainActivity"/>
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".MultiStateTopicConfigurationActivity"
-            android:parentActivityName=".Topics"/>
+            android:parentActivityName=".Topics" />
         <activity
             android:name=".DigitalTopicConfigurationActivity"
-            android:parentActivityName=".Topics"/>
+            android:parentActivityName=".Topics" />
         <activity
             android:name=".AnalogTopicConfigurationActivity"
-            android:parentActivityName=".Topics"/>
+            android:parentActivityName=".Topics" />
         <activity
             android:name=".LauncherActivity"
             android:theme="@style/SplashTheme">
@@ -52,27 +53,22 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-        </activity>
-<!--        <activity-->
-<!--            android:name=".SignUpActivity" />-->
-<!--        <activity-->
-<!--            android:name=".LoginActivity" />-->
+        </activity> <!-- <activity -->
+        <!-- android:name=".SignUpActivity" /> -->
+        <!-- <activity -->
+        <!-- android:name=".LoginActivity" /> -->
         <activity
             android:name=".Topics"
-            android:parentActivityName=".MainActivity"/>
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".ConnectToBrokerActivity"
             android:windowSoftInputMode="adjustPan" />
-        <activity
-            android:name=".MainActivity" /> <!-- <service android:name=".KeepAliveMqttConnectionService"></service> -->
-        <service
-            android:name="org.eclipse.paho.android.service.MqttService" />
+        <activity android:name=".MainActivity" /> <!-- <service android:name=".KeepAliveMqttConnectionService"></service> -->
+        <service android:name="org.eclipse.paho.android.service.MqttService" />
         <service
             android:name=".KeepAliveMqttConnectionService"
             android:foregroundServiceType="connectedDevice" />
-        <service
-            android:name=".FireBaseCloudMessagingService">
+        <service android:name=".FireBaseCloudMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

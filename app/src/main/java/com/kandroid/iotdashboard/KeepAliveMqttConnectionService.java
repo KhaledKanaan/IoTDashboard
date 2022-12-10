@@ -273,10 +273,10 @@ public class KeepAliveMqttConnectionService extends Service {
 //                //create an MQTT client
 //                mqttClient = MqttClient.builder()
 //                        .useMqttVersion5()
-//                        .serverHost("4e33b147c0024181ae5078b42e499ad9.s1.eu.hivemq.cloud")
+//                        .serverHost("4e33b147c0024******5078b42e499ad9.s1.eu.hivemq.cloud")
 //                        .serverPort(8883)
 //                        .sslWithDefaultConfig()
-//                        .identifier("khaled-kenaan@hotmail.com")
+//                        .identifier("********@hotmail.com")
 //                        .automaticReconnectWithDefaultConfig()
 //                        .addConnectedListener(new MqttClientConnectedListener() {
 //                            @Override
@@ -401,7 +401,7 @@ public class KeepAliveMqttConnectionService extends Service {
 
         /* Create an MqttAndroidClient object and configure the callback. */
 
-        //mqttAndroidClient = new MqttAndroidClient(getApplicationContext(),"ssl://4e33b147c0024181ae5078b42e499ad9.s1.eu.hivemq.cloud:8883", "khaled-kenaan@hotmail.com", persistence2);
+        //mqttAndroidClient = new MqttAndroidClient(getApplicationContext(),"ssl://4e33b147c0024******5078b42e499ad9.s1.eu.hivemq.cloud:8883", "********@hotmail.com", persistence2);
         mqttAndroidClient = new MqttAndroidClient(getApplicationContext(),"tcp://www.mqtt-dashboard.com:1883", "khalid-kenan@gmail.com", persistence2);
 
         mqttAndroidClient.setCallback(new MqttCallback() {

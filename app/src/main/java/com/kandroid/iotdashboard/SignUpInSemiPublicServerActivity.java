@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -40,8 +41,15 @@ public class SignUpInSemiPublicServerActivity extends AppCompatActivity {
             emailEditText, passwordEditText, confirmPasswordEditText;
     public String TAG = "SignUpInSemiPublicServerActivity";
     public static SharedPreferences sharedPreferences;
+    public TextInputLayout nameTextInputLayout, signUpEmailTextInputLayout, passwordTextInputLayout, retypeSignUpPasswordTextInputLayout;
 
     public void signUp(View view){
+
+        nameTextInputLayout.setError(null);
+        signUpEmailTextInputLayout.setError(null);
+        passwordTextInputLayout.setError(null);
+        retypeSignUpPasswordTextInputLayout.setError(null);
+
         if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()){
             DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
             if(connectedRef!=null) {
@@ -59,38 +67,44 @@ public class SignUpInSemiPublicServerActivity extends AppCompatActivity {
                                     String retypedPassword = confirmPasswordEditText.getText().toString().trim();
 
                                     if (emailAddress.isEmpty()) {
-                                        emailEditText.setError("Email is required");
-                                        emailEditText.requestFocus();
+                                        signUpEmailTextInputLayout.setError("Email is required");
+                                        //emailEditText.setError("Email is required");
+                                        //emailEditText.requestFocus();
                                         return;
                                     }
 
                                     if (!Patterns.EMAIL_ADDRESS.matcher(emailAddress).matches()) {
-                                        emailEditText.setError("Invalid email address");
-                                        emailEditText.requestFocus();
+                                        signUpEmailTextInputLayout.setError("Invalid email address");
+                                        //emailEditText.setError("Invalid email address");
+                                        //emailEditText.requestFocus();
                                         return;
                                     }
 
                                     if (password.isEmpty()) {
-                                        passwordEditText.setError("Password is required");
-                                        passwordEditText.requestFocus();
+                                        passwordTextInputLayout.setError("Password is required");
+                                        //passwordEditText.setError("Password is required");
+                                        //passwordEditText.requestFocus();
                                         return;
                                     }
 
                                     if (password.length() < 6) {
-                                        passwordEditText.setError("Enter at least 6 characters");
-                                        passwordEditText.requestFocus();
+                                        passwordTextInputLayout.setError("Enter at least 6 characters");
+                                        //passwordEditText.setError("Enter at least 6 characters");
+                                        //passwordEditText.requestFocus();
                                         return;
                                     }
 
                                     if (retypedPassword.isEmpty()) {
-                                        confirmPasswordEditText.setError("Password confirmation is required");
-                                        confirmPasswordEditText.requestFocus();
+                                        retypeSignUpPasswordTextInputLayout.setError("Password confirmation is required");
+                                        //confirmPasswordEditText.setError("Password confirmation is required");
+                                        //confirmPasswordEditText.requestFocus();
                                         return;
                                     }
 
                                     if (!retypedPassword.equals(password)) {
-                                        confirmPasswordEditText.setError("Re-typed password does not match");
-                                        confirmPasswordEditText.requestFocus();
+                                        retypeSignUpPasswordTextInputLayout.setError("Re-typed password does not match");
+                                        //confirmPasswordEditText.setError("Re-typed password does not match");
+                                        //confirmPasswordEditText.requestFocus();
                                         return;
                                     }
 
@@ -194,6 +208,11 @@ public class SignUpInSemiPublicServerActivity extends AppCompatActivity {
         passwordEditText = (EditText) findViewById(R.id.signUpPasswordEditText);
         confirmPasswordEditText = (EditText) findViewById(R.id.retypeSignUpPasswordEditText);
 
+        nameTextInputLayout = findViewById(R.id.nameTextInputLayout);
+        signUpEmailTextInputLayout = findViewById(R.id.signUpEmailTextInputLayout);
+        passwordTextInputLayout = findViewById(R.id.passwordTextInputLayout);
+        retypeSignUpPasswordTextInputLayout = findViewById(R.id.retypeSignUpPasswordTextInputLayout);
+
         boolean intentToConnect = sharedPreferences.getBoolean(LauncherActivity.INTENT_TO_CONNECT, false);
         if(intentToConnect) maintainTheConnectionToFirebase();
 
@@ -208,27 +227,6 @@ public class SignUpInSemiPublicServerActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-    }
-
-    public void disconnectFromFireBaseDataBase(){
-
-        sharedPreferences.edit().putBoolean(LauncherActivity.INTENT_TO_CONNECT, false).apply();
-        if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()){
-            try {
-                FirebaseDatabase.getInstance().goOffline();
-
-                new android.os.Handler(Looper.getMainLooper()).postDelayed(
-                        new Runnable() {
-                            public void run() {
-                                FirebaseApp.getInstance().delete();
-                            }
-                        },
-                        800);
-
-            } catch (Exception e) {
-                Log.e(TAG, e.toString());
-            }
-        }
     }
 
     public void maintainTheConnectionToFirebase(){

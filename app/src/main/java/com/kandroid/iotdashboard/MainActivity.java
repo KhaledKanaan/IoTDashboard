@@ -1,6 +1,7 @@
 package com.kandroid.iotdashboard;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +19,7 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.NetworkRequest;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.text.Html;
@@ -43,6 +45,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.SignInMethodQueryResult;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -71,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
     public ConnectivityManager connectivityManager;
     public ConnectivityManager.NetworkCallback networkCallback;
     public FirebaseAuth.AuthStateListener mAuthStateListener;
+    private ValueEventListener listener;
+    private ChildEventListener childListener;
+    private ValueEventListener maintainedConnectionListener, connectedRefListener;
 
 
     public void addThingWithFAB_Button(View view){
@@ -116,10 +122,18 @@ public class MainActivity extends AppCompatActivity {
                 DatabaseReference IoT_Database = getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
                 if(!(IoT_Database==null)){
 
-                    IoT_Database.child(thingTag).child(THING_NAME_TOPIC_TAG).child(Topics.VALUE).setValue(thingName);
-                    IoT_Database.child(thingTag).child(THING_NAME_TOPIC_TAG).child(Topics.ACCESS).setValue(Topics.READWRITE);
-                    IoT_Database.child(thingTag).child(THING_NAME_TOPIC_TAG).child(Topics.TYPE).setValue(Topics.MULTISTATE);
-                    IoT_Database.child(thingTag).child(THING_NAME_TOPIC_TAG).child(Topics.DESCRIPTION).setValue(THING_NAME_TOPIC_DESCRIPTION);
+                    Map<String, Object> thingData = new HashMap<>();
+                    thingData.put(Topics.VALUE, thingName);
+                    thingData.put(Topics.ACCESS, Topics.READWRITE);
+                    thingData.put(Topics.TYPE, Topics.MULTISTATE);
+                    thingData.put(Topics.DESCRIPTION, THING_NAME_TOPIC_DESCRIPTION);
+
+                    IoT_Database.child(thingTag).child(THING_NAME_TOPIC_TAG).setValue(thingData);
+
+//                    IoT_Database.child(thingTag).child(THING_NAME_TOPIC_TAG).child(Topics.VALUE).setValue(thingName);
+//                    IoT_Database.child(thingTag).child(THING_NAME_TOPIC_TAG).child(Topics.ACCESS).setValue(Topics.READWRITE);
+//                    IoT_Database.child(thingTag).child(THING_NAME_TOPIC_TAG).child(Topics.TYPE).setValue(Topics.MULTISTATE);
+//                    IoT_Database.child(thingTag).child(THING_NAME_TOPIC_TAG).child(Topics.DESCRIPTION).setValue(THING_NAME_TOPIC_DESCRIPTION);
 
                 }
             }
@@ -178,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 }
                                 else {
-                                    Toast.makeText(MainActivity.this, "Tag already used", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "This tag is already used", Toast.LENGTH_SHORT).show();
                                 }
                             }
                             else {
@@ -319,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
                                                                                     thingData.remove(currentTag);
                                                                                     thingData.put(newTag, data);
                                                                                     IoT_Database.child(newTag).updateChildren(thingData);
-                                                                                    IoT_Database.child(currentTag).setValue(null);
+                                                                                    IoT_Database.child(currentTag).removeValue();
 
                                                                                 }
 
@@ -397,16 +411,16 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog Dialog = new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle("Warning!")
-                .setMessage("All data related to this thing will be erased, continue?")
+                .setMessage("All topics related to this thing will be erased, continue?")
                 .setPositiveButton(Html.fromHtml("<font color='black'>Yes</font>"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        int indexToBeDeleted = getViewParentThingCardPosition(view);
-                        if(indexToBeDeleted>-1) {
-                            String tagToBeDeleted = getViewTag(gridLayout.getChildAt(indexToBeDeleted));
-                            gridLayout.removeViewAt(indexToBeDeleted);
-
+                        //int indexToBeDeleted = getViewParentThingCardPosition(view);
+                        String tagToBeDeleted = getViewTag(view);
+                        if(tagToBeDeleted != null) {
+                            //String tagToBeDeleted = getViewTag(gridLayout.getChildAt(indexToBeDeleted));
+                            //gridLayout.removeViewAt(indexToBeDeleted);
                             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                             if(user != null){
                                 DatabaseReference IoT_Database = getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
@@ -429,11 +443,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void brokerSettings(MenuItem item){
         Intent intent = new Intent(getApplicationContext(), ConnectToBrokerActivity.class);
+        removeListeners();
         startActivity(intent);
     }
 
     public void openConnectToFirebaseActivity(MenuItem item){
         Intent intent = new Intent(getApplicationContext(), ConnectToFirebaseActivity.class);
+        removeListeners();
         startActivity(intent);
     }
 
@@ -453,6 +469,7 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(MainActivity.this, userEmail + "\nis already logged in", Toast.LENGTH_LONG).show();
                             }else{
                                 Intent intent = new Intent(getApplicationContext(), LoginSemiPublicServerActivity.class);
+                                removeListeners();
                                 startActivity(intent);
                             }
                         }else Toast.makeText(MainActivity.this, "Please connect to Firebase first", Toast.LENGTH_LONG).show();
@@ -491,11 +508,47 @@ public class MainActivity extends AppCompatActivity {
         }else Toast.makeText(MainActivity.this, "No connection with Firebase",Toast.LENGTH_LONG).show();
     }
 
+    public void about(MenuItem item){
+        LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+        View promptsView = inflater.inflate(R.layout.about, null);
+
+        AlertDialog Dialog = new AlertDialog.Builder(this)
+                .setIcon(R.drawable.ic_baseline_info_24)
+                .setTitle(Html.fromHtml("<font color='#333333'>About</font>"))
+                .setView(promptsView)
+                .setNegativeButton(Html.fromHtml("<font color='black'>Close</font>"), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .show();
+    }
+
+    public void licenseAgreement(MenuItem item){
+        Intent intent = new Intent(getApplicationContext(), EulaActivity.class);
+        removeListeners();
+        startActivity(intent);
+    }
+
+    public void privacyPolicy(MenuItem item){
+        Intent intent = new Intent(getApplicationContext(), PrivacyPolicy.class);
+        removeListeners();
+        startActivity(intent);
+    }
+
+    public void goToStepByStepGuide(MenuItem item){
+        Uri uriUrl = Uri.parse("https://khaledkanaan.github.io/IoTDashboardUserGuide/");
+        Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
+        removeListeners();
+        startActivity(launchBrowser);
+    }
+
     public void retrievePreviousThingsFromFireBaseDataBaseAndListThem(String userDBRoot){
         //get previous things from FireBase Realtime database:
         DatabaseReference IoT_Database = getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, userDBRoot);
         if(!(IoT_Database==null)){
-            IoT_Database.addValueEventListener(new ValueEventListener() {
+            listener = IoT_Database.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     int count = 0;
@@ -504,7 +557,7 @@ public class MainActivity extends AppCompatActivity {
                         thingsTagsList.add(snapshot.getKey());
                         count++;
                         if (count == dataSnapshot.getChildrenCount()) { // make sure all things tags are retrieved from the firebase DB before start listing them
-                            Log.i("testC",thingsTagsList.toString());
+
                             for(int j =0; j<thingsTagsList.size(); j++){
 
                                 if(!thingsTagsList.get(j).isEmpty() && !(thingsTagsList.get(j)==null)) {
@@ -564,6 +617,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), Topics.class);
             intent.putExtra("Tag", tag);
             intent.putExtra("Name", name);
+            removeListeners();
             startActivity(intent);
         }
     }
@@ -608,6 +662,93 @@ public class MainActivity extends AppCompatActivity {
         return databaseReference;
     }
 
+    public void onChildEvents(){
+
+        if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if(user != null){
+                DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+                if(IoT_Database!=null){
+                    childListener = IoT_Database.addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                            if(snapshot!=null){
+                                String thingTag = snapshot.getKey();
+                                String thingDescription = snapshot.child(THING_NAME_TOPIC_TAG).child(VALUE).getValue().toString();
+                                if(!tagIsUsed(thingTag)){
+                                    if (snapshot.child(THING_NAME_TOPIC_TAG).child(VALUE).getValue()!=null){
+                                        inflateThingCard(thingTag, thingDescription);
+                                    }else inflateThingCard(thingTag, "");
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                            if(snapshot!=null){
+                                String thingTag = snapshot.getKey();
+                                String thingDescription = snapshot.child(THING_NAME_TOPIC_TAG).child(VALUE).getValue().toString();
+
+                                int thingCardIndex = getViewParentThingCardPositionWithTheSameTag(thingTag);
+                                if(thingCardIndex>-1){
+                                    if(snapshot.child(THING_NAME_TOPIC_TAG).child(VALUE).getValue()!=null){
+                                        updateThingCardViewAtIndex(thingCardIndex, thingTag, thingDescription);
+                                    }
+                                    else updateThingCardViewAtIndex(thingCardIndex, thingTag, "");
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                            if(snapshot!=null){
+                                String thingTag = snapshot.getKey();
+                                int cardIndexToBeRemove = getViewParentThingCardPositionWithTheSameTag(thingTag);
+                                if(cardIndexToBeRemove>-1){
+                                    gridLayout.removeViewAt(cardIndexToBeRemove);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    public void removeListeners(){
+        if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+
+            DatabaseReference maintainConnectionRef = FirebaseDatabase.getInstance().getReference().child(LauncherActivity.MAINTAINED_CONNECTION_POINT);
+            DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+            if(user!=null){
+                DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+                if(IoT_Database!=null && childListener!=null) {
+                    IoT_Database.removeEventListener(childListener);
+                }
+            }
+
+            if(maintainConnectionRef!=null && maintainedConnectionListener!=null) {
+                maintainConnectionRef.removeEventListener(maintainedConnectionListener);
+            }
+
+            if(connectedRef!=null && connectedRefListener!=null) {
+                maintainConnectionRef.removeEventListener(connectedRefListener);
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -626,15 +767,7 @@ public class MainActivity extends AppCompatActivity {
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-
         gridLayout = findViewById(R.id.gridLayout);
-
-
-
-        //Toast.makeText(MainActivity.this, String.valueOf(intentToConnect), Toast.LENGTH_LONG).show();
-
-//        Log.i("flexx login2", String.valueOf(intentToLogin));
-//        Log.i("flexx connect2", String.valueOf(intentToConnect));
 
         monitorInternetConnection();
     }
@@ -642,6 +775,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        removeListeners();
 
         boolean intentToConnect = sharedPreferences.getBoolean(LauncherActivity.INTENT_TO_CONNECT, false);
         boolean intentToLogin = sharedPreferences.getBoolean(LauncherActivity.INTENT_TO_LOGIN, false);
@@ -656,8 +791,22 @@ public class MainActivity extends AppCompatActivity {
                     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                         FirebaseUser user = firebaseAuth.getCurrentUser();
                         if (user != null) {
-                            retrievePreviousThingsFromFireBaseDataBaseAndListThem(user.getUid());
-                            retrieveCurrentFcmToken();
+                            if(listener!=null){
+                                    DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+                                    if(IoT_Database!=null) {
+                                        IoT_Database.removeEventListener(listener);
+                                    }
+                            }
+
+                            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                    new Runnable() {
+                                        public void run() {
+                                            onChildEvents();
+                                            //retrievePreviousThingsFromFireBaseDataBaseAndListThem(user.getUid());
+                                        }
+                                    },
+                                    300);
+                            //retrieveCurrentFcmToken();
                         }
                     }
                 };
@@ -707,16 +856,35 @@ public class MainActivity extends AppCompatActivity {
             }
 
             super.onBackPressed();
+            removeListeners();
             finishAffinity();
             finish();
         }
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        removeListeners();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        removeListeners();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        removeListeners();
+    }
+
     public void getConnectionToFireBaseDataBaseStatus(){
 
         if (!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
-                DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
-                connectedRef.addValueEventListener(new ValueEventListener() {
+            DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
+            connectedRefListener =connectedRef.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         boolean connected = snapshot.getValue(Boolean.class);
@@ -737,27 +905,27 @@ public class MainActivity extends AppCompatActivity {
 
     public void maintainTheConnectionToFirebase(){
 
-        DatabaseReference IoT_Database = FirebaseDatabase.getInstance().getReference().child(LauncherActivity.MAINTAINED_CONNECTION_POINT);
+        if (!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+            DatabaseReference IoT_Database = FirebaseDatabase.getInstance().getReference().child(LauncherActivity.MAINTAINED_CONNECTION_POINT);
+            if (IoT_Database != null) {
+                IoT_Database.setValue(true);
+                maintainedConnectionListener = IoT_Database.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Log.i(TAG, LauncherActivity.MAINTAINED_CONNECTION_POINT +" > "+ dataSnapshot.getValue());
+                    }
 
-        if(IoT_Database!=null){
-            IoT_Database.setValue(true);
-            IoT_Database.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                }
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
+                    }
+                });
+            }
         }
     }
 
     public void loginCurrentActiveUser(){
         if (!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
-
-            Log.i("flexx", "IN1");
 
             DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
             if(connectedRef!=null) {
@@ -766,29 +934,21 @@ public class MainActivity extends AppCompatActivity {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         boolean isConnected = snapshot.getValue(Boolean.class);
                         if (isConnected) {
-                            Log.i("flexx", "IN2");
                             FirebaseAuth mAuth = FirebaseAuth.getInstance();
                             if(mAuth!=null){
 
-                                Log.i("flexx", "IN3");
                                 String emailAddress = sharedPreferences.getString(LauncherActivity.USER_EMAIL, LauncherActivity.DEFAULT_USER_EMAIL);
                                 String password = sharedPreferences.getString(LauncherActivity.USER_PASSWORD, LauncherActivity.DEFAULT_USER_PASSWORD);
 
                                 if(!emailAddress.isEmpty() && !password.isEmpty()){
-
-                                    Log.i("flexx", "IN4");
                                     try {
                                         mAuth.signInWithEmailAndPassword(emailAddress, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                                             @Override
                                             public void onComplete(@NonNull Task<AuthResult> task) {
                                                 if (task.isSuccessful()) {
-                                                    Log.i("flexx", "IN5");
                                                     FirebaseUser currentUser = mAuth.getCurrentUser();
-
                                                     if(currentUser != null){
-                                                        Log.i("flexx", "IN6");
                                                         if(!currentUser.isEmailVerified()){
-                                                            Log.i("flexx", "IN7");
                                                             mAuth.signOut();
                                                             sharedPreferences.edit().putBoolean(LauncherActivity.INTENT_TO_LOGIN, false).apply();
                                                         }
@@ -816,62 +976,62 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void connectToFireBaseDataBase(){
-
-        //if(FirebaseApp.getApps(getApplicationContext()).isEmpty()){
-
-            String registeredDatabaseUrl = sharedPreferences.getString(LauncherActivity.DATABASE_URL, LauncherActivity.DEFAULT_DATABASE_URL);
-            String registeredApiKey = sharedPreferences.getString(LauncherActivity.API_KEY, LauncherActivity.DEFAULT_API_KEY);
-            String registeredApplicationId = sharedPreferences.getString(LauncherActivity.APPLICATION_ID, LauncherActivity.DEFAULT_APPLICATION_ID);
-            
-            if(!registeredDatabaseUrl.isEmpty()  && !registeredApiKey.isEmpty() && !registeredApplicationId.isEmpty()){
-
-                try {
-                    if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()){
-                        FirebaseApp.getInstance().delete();
-                    }
-                }catch(Exception e){
-                    Log.e(TAG, e.toString());
-                }
-
-                try {
-                    FirebaseOptions options = new FirebaseOptions.Builder()
-                            .setDatabaseUrl(registeredDatabaseUrl)
-                            .setApiKey(registeredApiKey)
-                            .setApplicationId(registeredApplicationId)
-                            //.setProjectId(ProjectId)
-                            .build();
-
-                    FirebaseApp.initializeApp(this, options);
-
-                    new android.os.Handler(Looper.getMainLooper()).postDelayed(
-                            new Runnable() {
-                                public void run() {
-                                    maintainTheConnectionToFirebase();
-                                    getConnectionToFireBaseDataBaseStatus();
-
-                                    if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
-                                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                                        if (user != null) {
-                                            retrievePreviousThingsFromFireBaseDataBaseAndListThem(user.getUid());
-                                            retrieveCurrentFcmToken();
-                                        }
-                                    }
-                                }
-                            },
-                            800);
-
-                }catch (Exception e){
-                    Log.e(TAG, e.toString());
-                    if(!FirebaseApp.getApps(getApplicationContext()).isEmpty())  FirebaseApp.getInstance().delete();
-                }
-            }
-            else {
-                disconnectFromFireBaseDataBase();
-                gridLayout.removeAllViews();
-            }
-       // }
-    }
+//    public void connectToFireBaseDataBase(){
+//
+//        //if(FirebaseApp.getApps(getApplicationContext()).isEmpty()){
+//
+//            String registeredDatabaseUrl = sharedPreferences.getString(LauncherActivity.DATABASE_URL, LauncherActivity.DEFAULT_DATABASE_URL);
+//            String registeredApiKey = sharedPreferences.getString(LauncherActivity.API_KEY, LauncherActivity.DEFAULT_API_KEY);
+//            String registeredApplicationId = sharedPreferences.getString(LauncherActivity.APPLICATION_ID, LauncherActivity.DEFAULT_APPLICATION_ID);
+//
+//            if(!registeredDatabaseUrl.isEmpty()  && !registeredApiKey.isEmpty() && !registeredApplicationId.isEmpty()){
+//
+//                try {
+//                    if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()){
+//                        FirebaseApp.getInstance().delete();
+//                    }
+//                }catch(Exception e){
+//                    Log.e(TAG, e.toString());
+//                }
+//
+//                try {
+//                    FirebaseOptions options = new FirebaseOptions.Builder()
+//                            .setDatabaseUrl(registeredDatabaseUrl)
+//                            .setApiKey(registeredApiKey)
+//                            .setApplicationId(registeredApplicationId)
+//                            //.setProjectId(ProjectId)
+//                            .build();
+//
+//                    FirebaseApp.initializeApp(this, options);
+//
+//                    new android.os.Handler(Looper.getMainLooper()).postDelayed(
+//                            new Runnable() {
+//                                public void run() {
+//                                    maintainTheConnectionToFirebase();
+//                                    getConnectionToFireBaseDataBaseStatus();
+//
+//                                    if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+//                                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//                                        if (user != null) {
+//                                            retrievePreviousThingsFromFireBaseDataBaseAndListThem(user.getUid());
+//                                            //retrieveCurrentFcmToken();
+//                                        }
+//                                    }
+//                                }
+//                            },
+//                            800);
+//
+//                }catch (Exception e){
+//                    Log.e(TAG, e.toString());
+//                    if(!FirebaseApp.getApps(getApplicationContext()).isEmpty())  FirebaseApp.getInstance().delete();
+//                }
+//            }
+//            else {
+//                disconnectFromFireBaseDataBase();
+//                gridLayout.removeAllViews();
+//            }
+//       // }
+//    }
 
     public void monitorInternetConnection(){
 

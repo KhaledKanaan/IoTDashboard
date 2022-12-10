@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -39,6 +40,7 @@ public class LoginSemiPublicServerActivity extends AppCompatActivity {
     public EditText emailEditText, passwordEditText;
     public String TAG = "LoginSemiPublicServerActivity";
     public static SharedPreferences sharedPreferences;
+    public TextInputLayout loginEmailTextInputLayout, passwordTextInputLayout;
 
     public void goToSignUp(View view){
         Intent intent = new Intent(getApplicationContext(), SignUpInSemiPublicServerActivity.class);
@@ -46,6 +48,10 @@ public class LoginSemiPublicServerActivity extends AppCompatActivity {
     }
 
     public void forgetPassword(View view){
+
+        loginEmailTextInputLayout.setError(null);
+        passwordTextInputLayout.setError(null);
+
         if (!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
             DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
             if (connectedRef != null) {
@@ -59,14 +65,18 @@ public class LoginSemiPublicServerActivity extends AppCompatActivity {
                                 String emailAddress = emailEditText.getText().toString().trim();
 
                                 if (emailAddress.isEmpty()) {
-                                    emailEditText.setError("Email is required");
-                                    emailEditText.requestFocus();
+                                    //emailEditText.setError("Email is required");
+                                    //emailEditText.requestFocus();
+
+                                    loginEmailTextInputLayout.setError("Email is required");
                                     return;
                                 }
 
                                 if (!Patterns.EMAIL_ADDRESS.matcher(emailAddress).matches()) {
-                                    emailEditText.setError("Invalid email address");
-                                    emailEditText.requestFocus();
+                                    //emailEditText.setError("Invalid email address");
+                                    //emailEditText.requestFocus();
+
+                                    loginEmailTextInputLayout.setError("Invalid email address");
                                     return;
                                 }
 
@@ -119,6 +129,10 @@ public class LoginSemiPublicServerActivity extends AppCompatActivity {
     }
 
     public void logIn(View view){
+
+        loginEmailTextInputLayout.setError(null);
+        passwordTextInputLayout.setError(null);
+
         if (!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
             DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
             if(connectedRef!=null) {
@@ -133,26 +147,34 @@ public class LoginSemiPublicServerActivity extends AppCompatActivity {
                                 String password = passwordEditText.getText().toString().trim();
 
                                 if(emailAddress.isEmpty()){
-                                    emailEditText.setError("Email is required");
-                                    emailEditText.requestFocus();
+                                    //emailEditText.setError("Email is required");
+                                    //emailEditText.requestFocus();
+
+                                    loginEmailTextInputLayout.setError("Email is required");
                                     return;
                                 }
 
                                 if(!Patterns.EMAIL_ADDRESS.matcher(emailAddress).matches()){
-                                    emailEditText.setError("Invalid email address");
-                                    emailEditText.requestFocus();
+                                    //emailEditText.setError("Invalid email address");
+                                    //emailEditText.requestFocus();
+
+                                    loginEmailTextInputLayout.setError("Invalid email address");
                                     return;
                                 }
 
                                 if(password.isEmpty()){
-                                    passwordEditText.setError("Password is required");
-                                    passwordEditText.requestFocus();
+                                    //passwordEditText.setError("Password is required");
+                                    //passwordEditText.requestFocus();
+
+                                    passwordTextInputLayout.setError("Password is required");
                                     return;
                                 }
 
                                 if(password.length()<6){
-                                    passwordEditText.setError("Enter at least 6 characters");
-                                    passwordEditText.requestFocus();
+                                    //passwordEditText.setError("Enter at least 6 characters");
+                                    //passwordEditText.requestFocus();
+
+                                    passwordTextInputLayout.setError("Enter at least 6 characters");
                                     return;
                                 }
 
@@ -186,13 +208,17 @@ public class LoginSemiPublicServerActivity extends AppCompatActivity {
                                             }
                                             else {
                                                 Toast.makeText(LoginSemiPublicServerActivity.this, task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                                                Log.i(TAG, task.getException().getMessage().toString());
+                                                Log.e(TAG, task.getException().getMessage());
+                                                passwordTextInputLayout.setError(" ");
+                                                loginEmailTextInputLayout.setError(" ");
                                             }
                                         }
                                     });
                                 }catch (Exception e){
                                     Log.e(TAG, e.toString());
                                     Toast.makeText(LoginSemiPublicServerActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                                    passwordTextInputLayout.setError(" ");
+                                    loginEmailTextInputLayout.setError(" ");
                                 }
                             }
                         } else Toast.makeText(LoginSemiPublicServerActivity.this, "Please connect to Firebase first", Toast.LENGTH_LONG).show();
@@ -223,6 +249,9 @@ public class LoginSemiPublicServerActivity extends AppCompatActivity {
 
         emailEditText = (EditText) findViewById(R.id.loginEmailEditText);
         passwordEditText = (EditText) findViewById(R.id.loginPasswordEditText);
+
+        loginEmailTextInputLayout = (TextInputLayout) findViewById(R.id.loginEmailTextInputLayout);
+        passwordTextInputLayout = (TextInputLayout) findViewById(R.id.passwordTextInputLayout);
 
         boolean intentToConnect = sharedPreferences.getBoolean(LauncherActivity.INTENT_TO_CONNECT, false);
         if(intentToConnect) maintainTheConnectionToFirebase();

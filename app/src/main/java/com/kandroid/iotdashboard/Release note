@@ -1,0 +1,31 @@
+IoTDashboard Release Note:
+
+----------------------------------------------------------------------------------------------------
+
+ [v1.0.0-alpha]
+
+- Release first stable version
+
+----------------------------------------------------------------------------------------------------
+
+ [v1.1.1-alpha]
+
+>Features:
+- Replace regex method with Gson library to read google-services.json file
+- Handle missing information and wrong format in google-service.json file
+- Replace deprecated startActivityForResult with registerForActivityResult method
+- Add the 'About' section in the navigation drawer
+- Update error management in the login activity
+- Update error management in the sign up activity
+- Update error management in the topic configuration activities
+- Improve the topic listener accuracy
+- Change "Full tag" to "Path" in topic's settings
+- Add EULA
+- Add Privacy Policy
+
+>Fixed bugs:
+- Fix the feedback node problem on topic rename
+- Fix string numbers handling in "AnalogTopicConfigurationActivity"
+- Fix recurrent listeners problem
+- Fix synchronization problem between multiple devices
+- Fix rename thing problem (non deleted kapprevious thing)

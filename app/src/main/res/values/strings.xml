@@ -2,5 +2,8 @@
     <string name="app_name">IoT\nDashboard</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="privacy_policy">IoTDashboard app does not store any user data remotely apart from being stored in an instance of Google Firebase created and managed by the user himself. Therefore the developer is not responsible for the privacy of user data in any way. </string>
+    <string name="privacy_policy_link"><a><u>Privacy Policy</u></a></string>
+    <string name="EULA_link"><a><u>EULA</u></a></string>
 
 </resources>

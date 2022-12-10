@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
@@ -22,6 +23,8 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -33,6 +36,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.kandroid.iotdashboard.Topics.ACCESS;
+import static com.kandroid.iotdashboard.Topics.DEFAULT_DESCRIPTION;
+import static com.kandroid.iotdashboard.Topics.DESCRIPTION;
+import static com.kandroid.iotdashboard.Topics.DIGITAL;
+import static com.kandroid.iotdashboard.Topics.MULTISTATE;
+import static com.kandroid.iotdashboard.Topics.READ;
+import static com.kandroid.iotdashboard.Topics.READWRITE;
+import static com.kandroid.iotdashboard.Topics.TYPE;
+import static com.kandroid.iotdashboard.Topics.VALUE;
 
 public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
 
@@ -46,13 +59,23 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
 
     public RadioButton ReadWriteRadioButton, ReadRadioButton;
 
-    public boolean error;
+    public TextInputLayout topicTextInputLayout;
 
-//    public static DatabaseReference IoT_Database;
+    //public List<ValueEventListener> listeners = new ArrayList<ValueEventListener>();
+
+    public boolean error, isTopicChanged;
+
+    private FirebaseUser user;
+
+    private DatabaseReference IoT_Database;
+
+    private ValueEventListener listener;
 
     public static List<String> topicTagsList = new ArrayList<String>();
 
     public void retrieveSettingsValuesFromFirebaseDatabase(){
+
+        removeListeners();
 
         if(!topicTag.isEmpty() && !(topicTag==null)) {
 
@@ -64,80 +87,61 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
 
                     topicEditText.setText(topicTag);
 
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.ACCESS)
-                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    if(!(dataSnapshot.getValue()==null)) {
-                                        access = dataSnapshot.getValue().toString();
-
-                                        // ReadWriteRadioButton = findViewById(R.id.RW_RadioButton);
-                                        //ReadRadioButton = findViewById(R.id.R_RadioButton);
-
-                                        if (access.equals(Topics.READWRITE)) {
-                                            ReadWriteRadioButton.setChecked(true);
-                                        }
-
-                                        else if (access.equals(Topics.READ)) {
-                                            ReadRadioButton.setChecked(true);
-                                        }
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-                                }
-                            });
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.DESCRIPTION)
-                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    if(!(dataSnapshot.getValue()==null)) {
-                                        topicName = dataSnapshot.getValue().toString();
-                                        //topicNameEditText = findViewById(R.id.topicDescriptionEditText);
-                                        topicNameEditText.setText(topicName);
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-                                }
-                            });
-
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.VALUE)
-                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    if(!(dataSnapshot.getValue()==null)) {
-                                        value = dataSnapshot.getValue().toString();
-                                        initialValueEditText.setText(value);
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-                                }
-                            });
-
-                    IoT_Database.child(thingTag).child(topicTag).addListenerForSingleValueEvent(new ValueEventListener() {
+                    listener = IoT_Database.child(thingTag).child(topicTag).addValueEventListener(new ValueEventListener() {
                         @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            if(!(dataSnapshot.getValue()==null)) {
-                                ArrayList<String> values = new ArrayList<>();
-                                for (DataSnapshot childSnapshot: dataSnapshot.child(Topics.NOTIFY_IF_EQUALS).getChildren()) {
-                                    values.add(childSnapshot.getValue(String.class));
-                                    String joinedValues = TextUtils.join(", ", values);
-                                    notifyIfEqualsEditText.setText(joinedValues);
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if(snapshot.getValue()!=null){
+
+                                Map<String, Object> topicData = new HashMap<>();
+                                topicData = (Map<String, Object>) snapshot.getValue();
+
+                                String access =  String.valueOf(topicData.get(Topics.ACCESS));
+                                String description =  String.valueOf(topicData.get(Topics.DESCRIPTION));
+                                String value =  String.valueOf(topicData.get(Topics.VALUE));
+                                String notifyIfEquals =  String.valueOf(topicData.get(Topics.NOTIFY_IF_EQUALS));
+
+
+                                ///
+                                if(topicData.get(Topics.ACCESS)!=null){
+                                    if (access.equals(Topics.READWRITE)) {
+                                        ReadWriteRadioButton.setChecked(true);
+                                    }
+
+                                    else if (access.equals(Topics.READ)) {
+                                        ReadRadioButton.setChecked(true);
+                                    }
                                 }
+
+                                ///
+                                if(topicData.get(Topics.DESCRIPTION)!=null){
+                                    topicNameEditText.setText(description);
+                                }else topicNameEditText.setText("");
+
+                                ///
+                                if(topicData.get(Topics.VALUE)!=null){
+                                    initialValueEditText.setText(value);
+                                }else initialValueEditText.setText("");
+
+
+                                ///
+                                if(topicData.get(Topics.NOTIFY_IF_EQUALS)!=null){
+                                    ArrayList<String> values = new ArrayList<>();
+                                    for (DataSnapshot childSnapshot: snapshot.child(Topics.NOTIFY_IF_EQUALS).getChildren()) {
+                                        values.add(childSnapshot.getValue(String.class));
+                                        String joinedValues = TextUtils.join(", ", values);
+                                        notifyIfEqualsEditText.setText(joinedValues);
+                                    }
+                                }else notifyIfEqualsEditText.setText("");
+
 
                             }
                         }
 
                         @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                        public void onCancelled(@NonNull DatabaseError error) {
+
                         }
                     });
-
                 }
             }
         }
@@ -153,25 +157,40 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
 
             if(!(IoT_Database==null)){
 
-                if(!(topicName.isEmpty())) {
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.DESCRIPTION).setValue(topicName);
-                }else IoT_Database.child(thingTag).child(topicTag).child(Topics.DESCRIPTION).setValue(Topics.DEFAULT_DESCRIPTION);
+                Map<String, Object> topicData = new HashMap<>();
+
+                topicData.put(TYPE, MULTISTATE);
+
+                if(!topicName.isEmpty()) {
+                    topicData.put(DESCRIPTION, topicName);
+                }else topicData.put(DESCRIPTION, DEFAULT_DESCRIPTION);
 
                 if (ReadWriteRadioButton.isChecked()){
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.ACCESS).setValue(Topics.READWRITE);
+                    topicData.put(ACCESS, READWRITE);
+                } else if (ReadRadioButton.isChecked()){
+                    topicData.put(ACCESS, READ);
                 }
 
-                else if (ReadRadioButton.isChecked()){
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.ACCESS).setValue(Topics.READ);
+                if(value != null) {
+                    topicData.put(VALUE, value);
                 }
 
-                if(!(value == null)) {
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.VALUE).setValue(value);
-                }
-
-                IoT_Database.child(thingTag).child(topicTag).child(Topics.TYPE).setValue(Topics.MULTISTATE);
+                IoT_Database.child(thingTag).child(topicTag).updateChildren(topicData);
 
                 manageNotifyIfEqualsValues();
+
+                if (isTopicChanged) {
+
+
+                    new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                            new Runnable() {
+                                public void run() {
+                                    retrieveSettingsValuesFromFirebaseDatabase();
+                                    isTopicChanged = false;
+                                }
+                            },
+                            500);
+                }
 
                 Toast.makeText(this,"Configurations saved", Toast.LENGTH_SHORT).show();
 
@@ -216,9 +235,18 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
                                                         Toast.makeText(getApplicationContext(),"\""+topicTag+"\""+" is already used", Toast.LENGTH_LONG).show();
                                                     }
                                                     else{
+                                                        removeListeners();
+                                                        isTopicChanged = true;
                                                         saveConfigurationsToFirebase();
-                                                        IoT_Database.child(thingTag).child(initialTopicTag).setValue(null);
-                                                        initialTopicTag = topicTag;
+
+                                                        new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                                new Runnable() {
+                                                                    public void run() {
+                                                                        IoT_Database.child(thingTag).child(initialTopicTag).setValue(null);
+                                                                        initialTopicTag = topicTag;
+                                                                    }
+                                                                },
+                                                                300);
                                                     }
                                                 }
                                             }
@@ -283,7 +311,7 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
                 String Tag = userID + "/Things" + "/" + thingTag + "/" + initialTopicTag;
                 AlertDialog newDialog = new AlertDialog.Builder(MultiStateTopicConfigurationActivity.this)
 
-                        .setTitle("Full tag:")
+                        .setTitle("Topic path:")
                         .setMessage(Tag)
                         .setPositiveButton(Html.fromHtml("<font color='black'><small>Copy to clipboard</small></font>"), new DialogInterface.OnClickListener() {
                             @Override
@@ -293,7 +321,7 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
                                     ClipData clip = ClipData.newPlainText(TAG, Tag);
                                     clipboard.setPrimaryClip(clip);
 
-                                    Toast.makeText(MultiStateTopicConfigurationActivity.this, "Tag copied to clipboard", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(MultiStateTopicConfigurationActivity.this, "Topic path copied to clipboard", Toast.LENGTH_LONG).show();
                                 }
                             }
                         })
@@ -318,11 +346,18 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+        user = FirebaseAuth.getInstance().getCurrentUser();
+        if(user != null) {
+            IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+        }
+
         Intent intent = getIntent();
 
         thingTag = intent.getStringExtra(Topics.THING_TAG);
         thingName = intent.getStringExtra(Topics.THING_DESCRIPTION_NAME);
         initialTopicTag = intent.getStringExtra(Topics.TOPIC_TAG);
+
+        //Toast.makeText(getApplicationContext(), initialTopicTag, Toast.LENGTH_LONG).show();
 
         topicTag = initialTopicTag;
 
@@ -340,6 +375,10 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
         ReadWriteRadioButton = findViewById(R.id.RW_RadioButton);
         ReadRadioButton = findViewById(R.id.R_RadioButton);
 
+        topicTextInputLayout = findViewById(R.id.topicTextInputLayout);
+
+        topicTextInputLayout.setPrefixText(thingTag+"/");
+
         retrieveSettingsValuesFromFirebaseDatabase();
 
     }
@@ -348,5 +387,45 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+
+    public void removeListeners(){
+        if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if(user!=null){
+                DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+                if(IoT_Database!=null){
+                    try {
+                        IoT_Database.child(thingTag).child(initialTopicTag).removeEventListener(listener);
+                    }catch(Exception e){
+                        Log.e(TAG, e.toString());
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        removeListeners();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        removeListeners();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        removeListeners();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        removeListeners();
     }
 }

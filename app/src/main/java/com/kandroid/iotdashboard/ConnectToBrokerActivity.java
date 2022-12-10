@@ -285,7 +285,7 @@ public class ConnectToBrokerActivity extends AppCompatActivity {
 //        }
 
 
-//        final String host = "4e33b147c002418*****78b42e499ad9.s1.eu.hivemq.cloud";
+//        final String host = "4e33b147c002********78b42e499ad9.s1.eu.hivemq.cloud";
 //        final String username = "iotdashboard";
 //        final String password = "*******";
 //
@@ -337,7 +337,7 @@ public class ConnectToBrokerActivity extends AppCompatActivity {
 //
 //        /* Create an MqttAndroidClient object and configure the callback. */
 //
-//        mqttAndroidClient = new MqttAndroidClient(getApplicationContext(),"ssl://4e33b147c0024181ae5078b42e499ad9.s1.eu.hivemq.cloud:8883", clientId);
+//        mqttAndroidClient = new MqttAndroidClient(getApplicationContext(),"ssl://4e33b147c0024******5078b42e499ad9.s1.eu.hivemq.cloud:8883", clientId);
 //        mqttAndroidClient.setCallback(new MqttCallback() {
 //            @Override
 //            public void connectionLost(Throwable cause) {

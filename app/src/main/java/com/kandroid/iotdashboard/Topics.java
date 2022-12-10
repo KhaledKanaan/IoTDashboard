@@ -7,8 +7,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -69,17 +71,30 @@ public class  Topics extends AppCompatActivity {
             DEFAULT_UNIT = null, DEFAULT_DESCRIPTION ="", DEFAULT_ANALOG_VALUE = "0", DEFAULT_STEP = "1", TEMP_NODE = "Temp_Node",
             TEXT_ON_SET = "Text_On_Set", TEXT_ON_RESET = "Text_On_Reset", NOTIFY_IF_SET = "Notify_If_Set", DEFAULT_BOOLEAN_VALUE = "false",
             NOTIFY_IF_RESET = "Notify_If_Reset", DEFAULT_TEXT_ON_SET = "On", DEFAULT_TEXT_ON_RESET = "Off", USE_FEEDBACK_NODE = "Use_Feedback_Node",
-            DEFAULT_NOTIFY_IF_SET = "No", DEFAULT_NOTIFY_IF_RESET = "No", textOnSet = DEFAULT_TEXT_ON_SET, FEEDBACK_NODE = "Feedback_Node",
-            textOnReset = DEFAULT_TEXT_ON_RESET, DEFAULT_MULTISTATE_VALUE = "", NOTIFY_IF_EQUALS = "Notify_If_Equals",
+            DEFAULT_NOTIFY_IF_SET = "No", DEFAULT_NOTIFY_IF_RESET = "No", FEEDBACK_NODE = "Feedback", DEFAULT_MULTISTATE_VALUE = "", NOTIFY_IF_EQUALS = "Notify_If_Equals",
             DIGITAL_ON_COLOR ="#2DC11D", DIGITAL_OFF_COLOR = "#AC1F1C", DIGITAL_ERROR_COLOR = "#AC003A", DIGITAL_ANALO_NORMAL_COLOR = "#7199FF", DEFAULT_ANALOG_FEEDBACK_VALUE = "0";
 
     private String TAG = "TopicsActivity";
+
+    private List<ValueEventListener> listeners = new ArrayList<ValueEventListener>();
+
+    private ChildEventListener childListener;
+
+    private ValueEventListener maintainedConnectionListener, connectedRefListener;
 
     private boolean firstPreview;
 
     public boolean connectedToTheInternet = false;
 
-    private final int feedbackNodeReviewDelay = 1500;
+    private final int feedbackNodeReviewDelay = 1000;
+
+    public SharedPreferences sharedPreferences;
+
+    private FirebaseUser user;
+
+    private DatabaseReference IoT_Database;
+
+    public long topicCount, counter = 0;
 
     public String getViewTag(View view){
         return String.valueOf(view.getTag()).trim();
@@ -135,19 +150,20 @@ public class  Topics extends AppCompatActivity {
 
                         if(analogRadioButton.isChecked()){
 
-                            inflateAnalogTopicCard(tag, name);
                             setDefaultAnalogTopicSettingsToFireBaseDatabase(thingTag, tag, name);
+                            inflateAnalogTopicCard(tag, name);
 
                         }
                         else if(digitalRadioButton.isChecked()){
-
-                            inflateDigitalTopicCard(tag, name);
                             setDefaultDigitalTopicSettingsToFireBaseDatabase(thingTag, tag, name);
+                            inflateDigitalTopicCard(tag, name);
+
 
                         }
                         else if(multistateRadioButton.isChecked()){
-                            inflateMultiStateTopicCard(tag, name);
                             setDefaultMultiStateTopicSettingsToFireBaseDatabase(thingTag, tag, name);
+                            inflateMultiStateTopicCard(tag, name);
+
                         }
                         Dialog.dismiss();
 
@@ -159,7 +175,7 @@ public class  Topics extends AppCompatActivity {
                                         sv.scrollTo(0, sv.getBottom());
                                     }
                                 },
-                                500);
+                                300);
                     }
                     else {
                         Toast.makeText(Topics.this, "Tag already used", Toast.LENGTH_SHORT).show();
@@ -204,7 +220,7 @@ public class  Topics extends AppCompatActivity {
 
         //Set the thing tag text in the CardView same as the one chosen in the first configuration dialog:
         TextView topicTagTextView = (TextView) view.findViewById(R.id.topicTag);
-        topicTagTextView.setText(tag);
+        topicTagTextView.setText(thingTag+"/"+tag);
     }
 
     public void setDefaultAnalogTopicSettingsToFireBaseDatabase(String thingTag, String topicTag, String topicName){
@@ -213,20 +229,23 @@ public class  Topics extends AppCompatActivity {
         if(user != null){
             DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
             if(!(IoT_Database==null)){
-                IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(DEFAULT_ANALOG_VALUE);
-                IoT_Database.child(thingTag).child(topicTag).child(ACCESS).setValue(DEFAULT_ACCESS);
-                IoT_Database.child(thingTag).child(topicTag).child(TYPE).setValue(ANALOG);
-                IoT_Database.child(thingTag).child(topicTag).child(DESCRIPTION).setValue(topicName);
-                IoT_Database.child(thingTag).child(topicTag).child(STEP).setValue(DEFAULT_STEP);
-                IoT_Database.child(thingTag).child(topicTag).child(UNIT).setValue(DEFAULT_UNIT);
-                IoT_Database.child(thingTag).child(topicTag).child(LOW_LIMIT).setValue(DEFAULT_LOW_LIMIT);
-                IoT_Database.child(thingTag).child(topicTag).child(HIGH_LIMIT).setValue(DEFAULT_HIGH_LIMIT);
-                IoT_Database.child(thingTag).child(topicTag).child(HIGH_LIMIT_NOTIFICATION_VALUE).
-                        setValue(DEFAULT_HIGH_LIMIT_NOTIFICATION_VALUE);
-                IoT_Database.child(thingTag).child(topicTag).child(LOW_LIMIT_NOTIFICATION_VALUE).
-                        setValue(DEFAULT_LOW_LIMIT_NOTIFICATION_VALUE);
-                IoT_Database.child(thingTag).child(topicTag).child(USE_FEEDBACK_NODE).setValue("No");
-                IoT_Database.child(thingTag).child(topicTag).child(FEEDBACK_NODE).setValue(DEFAULT_ANALOG_FEEDBACK_VALUE);
+
+                Map<String, Object> topicData = new HashMap<>();
+                topicData.put(VALUE, DEFAULT_ANALOG_VALUE);
+                topicData.put(ACCESS, DEFAULT_ACCESS);
+                topicData.put(TYPE, ANALOG);
+                topicData.put(DESCRIPTION, topicName);
+                topicData.put(STEP, DEFAULT_STEP);
+                topicData.put(UNIT, DEFAULT_UNIT);
+                topicData.put(LOW_LIMIT, DEFAULT_LOW_LIMIT);
+                topicData.put(HIGH_LIMIT, DEFAULT_HIGH_LIMIT);
+                topicData.put(HIGH_LIMIT_NOTIFICATION_VALUE, DEFAULT_HIGH_LIMIT_NOTIFICATION_VALUE);
+                topicData.put(LOW_LIMIT_NOTIFICATION_VALUE, DEFAULT_LOW_LIMIT_NOTIFICATION_VALUE);
+                topicData.put(USE_FEEDBACK_NODE, "No");
+                topicData.put(FEEDBACK_NODE, DEFAULT_ANALOG_FEEDBACK_VALUE);
+
+                IoT_Database.child(thingTag).child(topicTag).setValue(topicData);
+
 
             }
         }
@@ -238,16 +257,21 @@ public class  Topics extends AppCompatActivity {
         if(user != null){
             DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
             if(!(IoT_Database==null)){
-                IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(false);
-                IoT_Database.child(thingTag).child(topicTag).child(FEEDBACK_NODE).setValue(false);
-                IoT_Database.child(thingTag).child(topicTag).child(USE_FEEDBACK_NODE).setValue("No");
-                IoT_Database.child(thingTag).child(topicTag).child(ACCESS).setValue(DEFAULT_ACCESS);
-                IoT_Database.child(thingTag).child(topicTag).child(TYPE).setValue(DIGITAL);
-                IoT_Database.child(thingTag).child(topicTag).child(DESCRIPTION).setValue(topicName);
-                IoT_Database.child(thingTag).child(topicTag).child(TEXT_ON_SET).setValue(DEFAULT_TEXT_ON_SET);
-                IoT_Database.child(thingTag).child(topicTag).child(TEXT_ON_RESET).setValue(DEFAULT_TEXT_ON_RESET);
-                IoT_Database.child(thingTag).child(topicTag).child(NOTIFY_IF_SET).setValue(DEFAULT_NOTIFY_IF_SET);
-                IoT_Database.child(thingTag).child(topicTag).child(NOTIFY_IF_RESET).setValue(DEFAULT_NOTIFY_IF_RESET);
+
+                Map<String, Object> topicData = new HashMap<>();
+                topicData.put(VALUE, false);
+                topicData.put(ACCESS, DEFAULT_ACCESS);
+                topicData.put(TYPE, DIGITAL);
+                topicData.put(DESCRIPTION, topicName);
+                topicData.put(USE_FEEDBACK_NODE, "No");
+                topicData.put(FEEDBACK_NODE, false);
+                topicData.put(TEXT_ON_SET, DEFAULT_TEXT_ON_SET);
+                topicData.put(TEXT_ON_RESET, DEFAULT_TEXT_ON_RESET);
+                //topicData.put(NOTIFY_IF_SET, DEFAULT_NOTIFY_IF_SET);
+                //topicData.put(NOTIFY_IF_RESET, DEFAULT_NOTIFY_IF_RESET);
+
+                IoT_Database.child(thingTag).child(topicTag).setValue(topicData);
+
 
             }
         }
@@ -259,11 +283,16 @@ public class  Topics extends AppCompatActivity {
         if(user != null){
             DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
             if(!(IoT_Database==null)){
-                IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(DEFAULT_MULTISTATE_VALUE);
-                IoT_Database.child(thingTag).child(topicTag).child(ACCESS).setValue(DEFAULT_ACCESS);
-                IoT_Database.child(thingTag).child(topicTag).child(TYPE).setValue(MULTISTATE);
-                IoT_Database.child(thingTag).child(topicTag).child(DESCRIPTION).setValue(topicName);
-                IoT_Database.child(thingTag).child(topicTag).child(NOTIFY_IF_EQUALS).setValue(null);
+
+                Map<String, Object> topicData = new HashMap<>();
+                topicData.put(VALUE, DEFAULT_MULTISTATE_VALUE);
+                topicData.put(ACCESS, DEFAULT_ACCESS);
+                topicData.put(TYPE, MULTISTATE);
+                topicData.put(DESCRIPTION, topicName);
+                topicData.put(NOTIFY_IF_EQUALS, null);
+
+                IoT_Database.child(thingTag).child(topicTag).setValue(topicData);
+
 
             }
         }
@@ -272,7 +301,7 @@ public class  Topics extends AppCompatActivity {
     public synchronized void getSingleTopicDataFromFireBaseDatabaseAndUpdateTopicCard (View v){
 
         String topicTag = getViewTag(v);
-        View view = v;
+        //View view = v;
 
         if(!topicTag.isEmpty() && topicTag != null) {
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -280,225 +309,243 @@ public class  Topics extends AppCompatActivity {
                 DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
                 if(!(IoT_Database==null)){
                     // add listener to the topic node and get the relative data each time any node changes
+
                     IoT_Database.child(thingTag).child(topicTag)
-                            .addValueEventListener(new ValueEventListener() {
+                            .addListenerForSingleValueEvent(new ValueEventListener() { //<under test
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     if(!(dataSnapshot.getValue()==null)){
 
-                                        // get the topic data and put it in a map
-                                        Map<String, Object> topicData = new HashMap<>();
-                                        topicData = (Map<String, Object>) dataSnapshot.getValue();
+                                        //Toast.makeText(Topics.this, dataSnapshot.getKey().toString(), Toast.LENGTH_LONG).show();
 
-                                        //value, name, type and access are common for all types of topic
-                                        String value = String.valueOf(topicData.get(VALUE));
-                                        String name = String.valueOf(topicData.get(DESCRIPTION));
-                                        String type = String.valueOf(topicData.get(TYPE));
-                                        String access = String.valueOf(topicData.get(ACCESS));
+                                        String topicTag = dataSnapshot.getKey();
+
+                                        if(topicTag != null){
+
+                                            int parentViewPosition = getViewParentTopicCardPositionWithTheSameTag(topicTag);
+
+                                            if(parentViewPosition>-1) {
+
+                                                View view = gridLayout.getChildAt(parentViewPosition);
+
+                                                // get the topic data and put it in a map
+                                                Map<String, Object> topicData = new HashMap<>();
+                                                topicData = (Map<String, Object>) dataSnapshot.getValue();
+
+                                                //value, name, type and access are common for all types of topic
+                                                String value = String.valueOf(topicData.get(VALUE));
+                                                String name = String.valueOf(topicData.get(DESCRIPTION));
+                                                String type = String.valueOf(topicData.get(TYPE));
+                                                String access = String.valueOf(topicData.get(ACCESS));
 
 
-                                        if(topicData.get(DESCRIPTION)!=null){
-                                            TextView descriptionTextView = (TextView) view.findViewById(R.id.topicName);
-                                            descriptionTextView.setText(name);
-                                        }
+                                                if(topicData.get(DESCRIPTION)!=null){
+                                                    TextView descriptionTextView = (TextView) view.findViewById(R.id.topicName);
+                                                    descriptionTextView.setText(name);
+                                                }else IoT_Database.child(thingTag).child(topicTag).child(ACCESS).setValue(DEFAULT_ACCESS);
 
-                                        if(topicData.get(TYPE)!=null){
-                                            TextView topicTypeTextView = (TextView) view.findViewById(R.id.topicType);
-                                            topicTypeTextView.setText(type);
-                                        }
+                                                if(topicData.get(TYPE)!=null){
+                                                    TextView topicTypeTextView = (TextView) view.findViewById(R.id.topicType);
+                                                    topicTypeTextView.setText(type);
+                                                }
 
-                                        if(topicData.get(ACCESS)!=null){
-                                            TextView topicAccessTextView = (TextView) view.findViewById(R.id.topicAccess);
-                                            topicAccessTextView.setText(access);
+                                                if(topicData.get(ACCESS)!=null){
+                                                    TextView topicAccessTextView = (TextView) view.findViewById(R.id.topicAccess);
+                                                    topicAccessTextView.setText(access);
 
-                                            //set the visibilities of buttons base on access type:
-                                            if(access.equals(READ)){
+                                                    //set the visibilities of buttons base on access type:
+                                                    if(access.equals(READ)){
+                                                        if(type.equals(ANALOG)){
+                                                            view.findViewById(R.id.increaseImageButton).setVisibility(View.INVISIBLE);
+                                                            view.findViewById(R.id.decreaseImageButton).setVisibility(View.INVISIBLE);
+                                                        }
+                                                        else if(type.equals(DIGITAL)){
+                                                            view.findViewById(R.id.onButton).setVisibility(View.INVISIBLE);
+                                                            view.findViewById(R.id.offButton).setVisibility(View.INVISIBLE);
+                                                        }
+                                                        else if(type.equals(MULTISTATE)){
+                                                            view.findViewById(R.id.sendButton).setVisibility(View.INVISIBLE);
+                                                            view.findViewById(R.id.stateEditText).setVisibility(View.INVISIBLE);
+                                                        }
+                                                    }
+                                                    else if(access.equals(READWRITE)){
+                                                        if(type.equals(ANALOG)){
+                                                            view.findViewById(R.id.increaseImageButton).setVisibility(View.VISIBLE);
+                                                            view.findViewById(R.id.decreaseImageButton).setVisibility(View.VISIBLE);
+                                                        }
+                                                        else if(type.equals(DIGITAL)){
+                                                            view.findViewById(R.id.onButton).setVisibility(View.VISIBLE);
+                                                            view.findViewById(R.id.offButton).setVisibility(View.VISIBLE);
+                                                        }
+                                                        else if(type.equals(MULTISTATE)){
+                                                            view.findViewById(R.id.sendButton).setVisibility(View.VISIBLE);
+                                                            view.findViewById(R.id.stateEditText).setVisibility(View.VISIBLE);
+                                                        }
+                                                    }
+                                                }else IoT_Database.child(thingTag).child(topicTag).child(ACCESS).setValue(DEFAULT_ACCESS);
+
+                                                TextView topicValueTextView = (TextView) view.findViewById(R.id.topicValue);
+
                                                 if(type.equals(ANALOG)){
-                                                    view.findViewById(R.id.increaseImageButton).setVisibility(View.INVISIBLE);
-                                                    view.findViewById(R.id.decreaseImageButton).setVisibility(View.INVISIBLE);
-                                                }
-                                                else if(type.equals(DIGITAL)){
-                                                    view.findViewById(R.id.onButton).setVisibility(View.INVISIBLE);
-                                                    view.findViewById(R.id.offButton).setVisibility(View.INVISIBLE);
-                                                }
-                                                else if(type.equals(MULTISTATE)){
-                                                    view.findViewById(R.id.sendButton).setVisibility(View.INVISIBLE);
-                                                    view.findViewById(R.id.stateEditText).setVisibility(View.INVISIBLE);
-                                                }
-                                            }
-                                            else if(access.equals(READWRITE)){
-                                                if(type.equals(ANALOG)){
-                                                    view.findViewById(R.id.increaseImageButton).setVisibility(View.VISIBLE);
-                                                    view.findViewById(R.id.decreaseImageButton).setVisibility(View.VISIBLE);
-                                                }
-                                                else if(type.equals(DIGITAL)){
-                                                    view.findViewById(R.id.onButton).setVisibility(View.VISIBLE);
-                                                    view.findViewById(R.id.offButton).setVisibility(View.VISIBLE);
-                                                }
-                                                else if(type.equals(MULTISTATE)){
-                                                    view.findViewById(R.id.sendButton).setVisibility(View.VISIBLE);
-                                                    view.findViewById(R.id.stateEditText).setVisibility(View.VISIBLE);
-                                                }
-                                            }
-                                        }
 
-                                        TextView topicValueTextView = (TextView) view.findViewById(R.id.topicValue);
-
-                                        if(type.equals(ANALOG)){
-
-                                            String useFeedbackNode = String.valueOf(topicData.get(USE_FEEDBACK_NODE));
-                                            String feedback = String.valueOf(topicData.get(FEEDBACK_NODE));
-                                            String highLimit = String.valueOf(topicData.get(HIGH_LIMIT));
-                                            String lowLimit = String.valueOf(topicData.get(LOW_LIMIT));
-                                            String highLimitNotification = String.valueOf(topicData.get(HIGH_LIMIT_NOTIFICATION_VALUE));
-                                            String lowLimitNotification = String.valueOf(topicData.get(LOW_LIMIT_NOTIFICATION_VALUE));
-                                            String step = String.valueOf(topicData.get(STEP));
-                                            String unit = String.valueOf(topicData.get(UNIT));
+                                                    String useFeedbackNode = String.valueOf(topicData.get(USE_FEEDBACK_NODE));
+                                                    String feedback = String.valueOf(topicData.get(FEEDBACK_NODE));
+                                                    String highLimit = String.valueOf(topicData.get(HIGH_LIMIT));
+                                                    String lowLimit = String.valueOf(topicData.get(LOW_LIMIT));
+                                                    String highLimitNotification = String.valueOf(topicData.get(HIGH_LIMIT_NOTIFICATION_VALUE));
+                                                    String lowLimitNotification = String.valueOf(topicData.get(LOW_LIMIT_NOTIFICATION_VALUE));
+                                                    String step = String.valueOf(topicData.get(STEP));
+                                                    String unit = String.valueOf(topicData.get(UNIT));
 
 
-                                            if(topicData.get(VALUE)!= null && NumberUtils.isCreatable(value)){
+                                                    if(NumberUtils.isCreatable(value)){
 
-                                                topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ANALO_NORMAL_COLOR));
+                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ANALO_NORMAL_COLOR));
 
-                                                if(topicData.get(HIGH_LIMIT)!=null && NumberUtils.isCreatable(highLimit)){
-                                                    BigDecimal highLimitValue = new BigDecimal(highLimit);
-                                                    BigDecimal analogValue = new BigDecimal(value);
-                                                    if(analogValue.compareTo(highLimitValue)>0){
-                                                        value = highLimit;
-                                                        IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(highLimit);
+                                                        if(NumberUtils.isCreatable(highLimit)){
+                                                            BigDecimal highLimitValue = new BigDecimal(highLimit);
+                                                            BigDecimal analogValue = new BigDecimal(value);
+                                                            if(analogValue.compareTo(highLimitValue)>0){
+                                                                value = highLimit;
+                                                                IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(highLimit);
+                                                            }
+                                                        }
+
+                                                        if(NumberUtils.isCreatable(lowLimit)){
+                                                            BigDecimal lowLimitValue = new BigDecimal(lowLimit);
+                                                            BigDecimal analogValue = new BigDecimal(value);
+                                                            if(analogValue.compareTo(lowLimitValue)<0){
+                                                                value = lowLimit;
+                                                                IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(lowLimit);
+                                                            }
+                                                        }
+
+                                                        if(useFeedbackNode.equals("Yes")){
+                                                            if(!firstPreview){
+                                                                //topicValueTextView.setText(value);
+                                                                Map<String, Object> finalTopicData = topicData;
+                                                                new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                                        new Runnable() {
+                                                                            public void run() {
+                                                                                if(finalTopicData.get(FEEDBACK_NODE)!=null){
+                                                                                    topicValueTextView.setText(feedback);
+                                                                                }
+                                                                            }
+                                                                        }, feedbackNodeReviewDelay);
+                                                            }
+                                                            else{
+                                                                if(topicData.get(FEEDBACK_NODE)!=null){
+                                                                    topicValueTextView.setText(feedback);
+                                                                }
+                                                            }
+                                                            view.findViewById(R.id.feedbackSignal).setVisibility(View.VISIBLE);
+
+                                                        }else{
+                                                            topicValueTextView.setText(value);
+                                                            view.findViewById(R.id.feedbackSignal).setVisibility(View.INVISIBLE);
+                                                        }
+                                                    }else {
+                                                        topicValueTextView.setText("NaN");
+                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ERROR_COLOR));
+                                                    }
+
+
+                                                    if(NumberUtils.isCreatable(step)){
+                                                        TextView topicStepTextView = (TextView) view.findViewById(R.id.step);
+                                                        topicStepTextView.setText(step);
+                                                    }
+
+                                                    if(topicData.get(UNIT)!=null){
+                                                        TextView unitTextView = (TextView) view.findViewById(R.id.unitTextView);
+                                                        unitTextView.setText(unit);
                                                     }
                                                 }
 
-                                                if(topicData.get(LOW_LIMIT)!=null && NumberUtils.isCreatable(lowLimit)){
-                                                    BigDecimal lowLimitValue = new BigDecimal(lowLimit);
-                                                    BigDecimal analogValue = new BigDecimal(value);
-                                                    if(analogValue.compareTo(lowLimitValue)<0){
-                                                        value = lowLimit;
-                                                        IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(lowLimit);
-                                                    }
-                                                }
+                                                if(type.equals(DIGITAL)){
+                                                    String useFeedbackNode = String.valueOf(topicData.get(USE_FEEDBACK_NODE));
+                                                    String feedback = String.valueOf(topicData.get(FEEDBACK_NODE));
+                                                    String notifyIfSet = String.valueOf(topicData.get(NOTIFY_IF_SET));
+                                                    String notifyIfReset = String.valueOf(topicData.get(NOTIFY_IF_RESET));
+                                                    String textOnSet = String.valueOf(topicData.get(TEXT_ON_SET));
+                                                    String textOnReset = String.valueOf(topicData.get(TEXT_ON_RESET));
 
-                                                if(useFeedbackNode.equals("Yes")){
-                                                    if(!firstPreview){
-                                                        topicValueTextView.setText(value);
-                                                        Map<String, Object> finalTopicData = topicData;
-                                                        new android.os.Handler(Looper.getMainLooper()).postDelayed(
-                                                                new Runnable() {
-                                                                    public void run() {
-                                                                        if(finalTopicData.get(FEEDBACK_NODE)!=null){
-                                                                            topicValueTextView.setText(feedback);
-                                                                        }
+                                                    if(topicData.get(VALUE)!=null){
+                                                        if(useFeedbackNode.equals("Yes")){
+                                                            if(!firstPreview){
+//                                                                if(value.equals("true") && topicData.get(TEXT_ON_SET)!=null){
+//                                                                    topicValueTextView.setText(textOnSet);
+//                                                                    topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
+//                                                                    updateDigitalButtonsTexts(topicTag, view);
+//                                                                }
+//
+//                                                                else if(value.equals("false") && topicData.get(TEXT_ON_RESET)!=null) {
+//                                                                    topicValueTextView.setText(textOnReset);
+//                                                                    topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
+//                                                                    updateDigitalButtonsTexts(topicTag, view);
+//                                                                }
+
+                                                                if(topicData.get(FEEDBACK_NODE)!=null){
+                                                                    Map<String, Object> finalTopicData1 = topicData;
+                                                                    new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                                            new Runnable() {
+                                                                                public void run() {
+                                                                                    if(feedback.equals("true") && finalTopicData1.get(TEXT_ON_SET)!=null){
+                                                                                        topicValueTextView.setText(textOnSet);
+                                                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
+                                                                                        updateDigitalButtonsTexts(topicTag, view);
+                                                                                    }
+                                                                                    else if(feedback.equals("false") && finalTopicData1.get(TEXT_ON_RESET)!=null) {
+                                                                                        topicValueTextView.setText(textOnReset);
+                                                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
+                                                                                        updateDigitalButtonsTexts(topicTag, view);
+                                                                                    }
+                                                                                }
+                                                                            }, feedbackNodeReviewDelay);
+                                                                }
+                                                            }
+                                                            else{
+                                                                if(topicData.get(FEEDBACK_NODE)!=null){
+                                                                    if(feedback.equals("true") && topicData.get(TEXT_ON_SET)!=null){
+                                                                        topicValueTextView.setText(textOnSet);
+                                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
+                                                                        updateDigitalButtonsTexts(topicTag, view);
                                                                     }
-                                                                }, feedbackNodeReviewDelay);
-                                                    }
-                                                    else{
-                                                        if(topicData.get(FEEDBACK_NODE)!=null){
-                                                            topicValueTextView.setText(feedback);
+                                                                    else if(feedback.equals("false") && topicData.get(TEXT_ON_RESET)!=null) {
+                                                                        topicValueTextView.setText(textOnReset);
+                                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
+                                                                        updateDigitalButtonsTexts(topicTag, view);
+                                                                    }
+                                                                }
+                                                            }
+                                                            view.findViewById(R.id.feedbackSignal).setVisibility(View.VISIBLE);
                                                         }
-                                                    }
-                                                    view.findViewById(R.id.feedbackSignal).setVisibility(View.VISIBLE);
-
-                                                }else{
-                                                    topicValueTextView.setText(value);
-                                                    view.findViewById(R.id.feedbackSignal).setVisibility(View.INVISIBLE);
-                                                }
-                                            }else {
-                                                topicValueTextView.setText("NaN");
-                                                topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ERROR_COLOR));
-                                            }
-
-
-                                            if(topicData.get(STEP)!=null){
-                                                TextView topicStepTextView = (TextView) view.findViewById(R.id.step);
-                                                topicStepTextView.setText(step);
-                                            }
-
-                                            if(topicData.get(UNIT)!=null){
-                                                TextView unitTextView = (TextView) view.findViewById(R.id.unitTextView);
-                                                unitTextView.setText(unit);
-                                            }
-                                        }
-
-                                        if(type.equals(DIGITAL)){
-                                            String useFeedbackNode = String.valueOf(topicData.get(USE_FEEDBACK_NODE));
-                                            String feedback = String.valueOf(topicData.get(FEEDBACK_NODE));
-                                            String notifyIfSet = String.valueOf(topicData.get(NOTIFY_IF_SET));
-                                            String notifyIfReset = String.valueOf(topicData.get(NOTIFY_IF_RESET));
-                                            String textOnSet = String.valueOf(topicData.get(TEXT_ON_SET));
-                                            String textOnReset = String.valueOf(topicData.get(TEXT_ON_RESET));
-
-                                            if(topicData.get(VALUE)!=null){
-                                                if(useFeedbackNode.equals("Yes")){
-                                                    if(!firstPreview){
-                                                        if(value.equals("true") && topicData.get(TEXT_ON_SET)!=null){
-                                                            topicValueTextView.setText(textOnSet);
-                                                            topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
-                                                            updateDigitalButtonsTexts(topicTag, view);
-                                                        }
-
-                                                        else if(value.equals("false") && topicData.get(TEXT_ON_RESET)!=null) {
-                                                            topicValueTextView.setText(textOnReset);
-                                                            topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
-                                                            updateDigitalButtonsTexts(topicTag, view);
-                                                        }
-
-                                                        if(feedback!=null){
-                                                            Map<String, Object> finalTopicData1 = topicData;
-                                                            new android.os.Handler(Looper.getMainLooper()).postDelayed(
-                                                                    new Runnable() {
-                                                                        public void run() {
-                                                                            if(feedback.equals("true") && finalTopicData1.get(TEXT_ON_SET)!=null){
-                                                                                topicValueTextView.setText(textOnSet);
-                                                                                topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
-                                                                                updateDigitalButtonsTexts(topicTag, view);
-                                                                            }
-                                                                            else if(feedback.equals("false") && finalTopicData1.get(TEXT_ON_RESET)!=null) {
-                                                                                topicValueTextView.setText(textOnReset);
-                                                                                topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
-                                                                                updateDigitalButtonsTexts(topicTag, view);
-                                                                            }
-                                                                        }
-                                                                    }, feedbackNodeReviewDelay);
-                                                        }
-                                                    }
-                                                    else{
-                                                        if(topicData.get(FEEDBACK_NODE)!=null){
-                                                            if(feedback.equals("true") && topicData.get(TEXT_ON_SET)!=null){
+                                                        else if(useFeedbackNode.equals("No")){
+                                                            if(value.equals("true") && topicData.get(TEXT_ON_SET)!=null){
                                                                 topicValueTextView.setText(textOnSet);
                                                                 topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
                                                                 updateDigitalButtonsTexts(topicTag, view);
                                                             }
-                                                            else if(feedback.equals("false") && topicData.get(TEXT_ON_RESET)!=null) {
+
+                                                            else if(value.equals("false") && topicData.get(TEXT_ON_RESET)!=null) {
                                                                 topicValueTextView.setText(textOnReset);
                                                                 topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
                                                                 updateDigitalButtonsTexts(topicTag, view);
                                                             }
+                                                            view.findViewById(R.id.feedbackSignal).setVisibility(View.INVISIBLE);
                                                         }
+                                                        else topicValueTextView.setText(value);
                                                     }
-                                                    view.findViewById(R.id.feedbackSignal).setVisibility(View.VISIBLE);
+                                                    else topicValueTextView.setText("");
                                                 }
-                                                else if(useFeedbackNode.equals("No")){
-                                                    if(value.equals("true") && topicData.get(TEXT_ON_SET)!=null){
-                                                        topicValueTextView.setText(textOnSet);
-                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
-                                                        updateDigitalButtonsTexts(topicTag, view);
-                                                    }
 
-                                                    else if(value.equals("false") && topicData.get(TEXT_ON_RESET)!=null) {
-                                                        topicValueTextView.setText(textOnReset);
-                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
-                                                        updateDigitalButtonsTexts(topicTag, view);
-                                                    }
-                                                    view.findViewById(R.id.feedbackSignal).setVisibility(View.INVISIBLE);
+                                                if(type.equals(MULTISTATE)){
+                                                    Object notifyIfEquals = topicData.get(NOTIFY_IF_EQUALS);
+                                                    if(topicData.get(VALUE)!=null){
+                                                        topicValueTextView.setText(value);
+                                                    }else topicValueTextView.setText("");
                                                 }
                                             }
-                                        }
 
-                                        if(type.equals(MULTISTATE)){
-                                            Object notifyIfEquals = topicData.get(NOTIFY_IF_EQUALS);
-                                            if(value!=null){
-                                                topicValueTextView.setText(value);
-                                            }
                                         }
                                     }
                                 }
@@ -506,6 +553,269 @@ public class  Topics extends AppCompatActivity {
                                 public void onCancelled(@NonNull DatabaseError databaseError) {
                                 }
                             });
+
+                    //listeners.add(listener);
+                }
+
+            }
+        }
+    }
+
+    public synchronized void getSingleTopicByTagDataFromFireBaseDatabaseAndUpdateTopicCard (String topicTag){
+
+
+        if(!topicTag.isEmpty() && topicTag != null) {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if(user != null){
+                DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+                if(!(IoT_Database==null)){
+                    // add listener to the topic node and get the relative data each time any node changes
+
+                    IoT_Database.child(thingTag).child(topicTag)
+                            .addListenerForSingleValueEvent(new ValueEventListener() { //<under test
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    if(!(dataSnapshot.getValue()==null)){
+
+                                        //Toast.makeText(Topics.this, dataSnapshot.getKey().toString(), Toast.LENGTH_LONG).show();
+
+                                        String topicTag = dataSnapshot.getKey();
+
+                                        if(topicTag != null){
+
+                                            int parentViewPosition = getViewParentTopicCardPositionWithTheSameTag(topicTag);
+
+                                            if(parentViewPosition>-1) {
+
+                                                View view = gridLayout.getChildAt(parentViewPosition);
+
+                                                // get the topic data and put it in a map
+                                                Map<String, Object> topicData = new HashMap<>();
+                                                topicData = (Map<String, Object>) dataSnapshot.getValue();
+
+                                                //value, name, type and access are common for all types of topic
+                                                String value = String.valueOf(topicData.get(VALUE));
+                                                String name = String.valueOf(topicData.get(DESCRIPTION));
+                                                String type = String.valueOf(topicData.get(TYPE));
+                                                String access = String.valueOf(topicData.get(ACCESS));
+
+
+                                                if(topicData.get(DESCRIPTION)!=null){
+                                                    TextView descriptionTextView = (TextView) view.findViewById(R.id.topicName);
+                                                    descriptionTextView.setText(name);
+                                                }else IoT_Database.child(thingTag).child(topicTag).child(ACCESS).setValue(DEFAULT_ACCESS);
+
+                                                if(topicData.get(TYPE)!=null){
+                                                    TextView topicTypeTextView = (TextView) view.findViewById(R.id.topicType);
+                                                    topicTypeTextView.setText(type);
+                                                }
+
+                                                if(topicData.get(ACCESS)!=null){
+                                                    TextView topicAccessTextView = (TextView) view.findViewById(R.id.topicAccess);
+                                                    topicAccessTextView.setText(access);
+
+                                                    //set the visibilities of buttons base on access type:
+                                                    if(access.equals(READ)){
+                                                        if(type.equals(ANALOG)){
+                                                            view.findViewById(R.id.increaseImageButton).setVisibility(View.INVISIBLE);
+                                                            view.findViewById(R.id.decreaseImageButton).setVisibility(View.INVISIBLE);
+                                                        }
+                                                        else if(type.equals(DIGITAL)){
+                                                            view.findViewById(R.id.onButton).setVisibility(View.INVISIBLE);
+                                                            view.findViewById(R.id.offButton).setVisibility(View.INVISIBLE);
+                                                        }
+                                                        else if(type.equals(MULTISTATE)){
+                                                            view.findViewById(R.id.sendButton).setVisibility(View.INVISIBLE);
+                                                            view.findViewById(R.id.stateEditText).setVisibility(View.INVISIBLE);
+                                                        }
+                                                    }
+                                                    else if(access.equals(READWRITE)){
+                                                        if(type.equals(ANALOG)){
+                                                            view.findViewById(R.id.increaseImageButton).setVisibility(View.VISIBLE);
+                                                            view.findViewById(R.id.decreaseImageButton).setVisibility(View.VISIBLE);
+                                                        }
+                                                        else if(type.equals(DIGITAL)){
+                                                            view.findViewById(R.id.onButton).setVisibility(View.VISIBLE);
+                                                            view.findViewById(R.id.offButton).setVisibility(View.VISIBLE);
+                                                        }
+                                                        else if(type.equals(MULTISTATE)){
+                                                            view.findViewById(R.id.sendButton).setVisibility(View.VISIBLE);
+                                                            view.findViewById(R.id.stateEditText).setVisibility(View.VISIBLE);
+                                                        }
+                                                    }
+                                                }else IoT_Database.child(thingTag).child(topicTag).child(ACCESS).setValue(DEFAULT_ACCESS);
+
+                                                TextView topicValueTextView = (TextView) view.findViewById(R.id.topicValue);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                if(type.equals(ANALOG)){
+
+                                                    String useFeedbackNode = String.valueOf(topicData.get(USE_FEEDBACK_NODE));
+                                                    String feedback = String.valueOf(topicData.get(FEEDBACK_NODE));
+                                                    String highLimit = String.valueOf(topicData.get(HIGH_LIMIT));
+                                                    String lowLimit = String.valueOf(topicData.get(LOW_LIMIT));
+                                                    String highLimitNotification = String.valueOf(topicData.get(HIGH_LIMIT_NOTIFICATION_VALUE));
+                                                    String lowLimitNotification = String.valueOf(topicData.get(LOW_LIMIT_NOTIFICATION_VALUE));
+                                                    String step = String.valueOf(topicData.get(STEP));
+                                                    String unit = String.valueOf(topicData.get(UNIT));
+
+
+                                                    if(NumberUtils.isCreatable(value)){
+
+                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ANALO_NORMAL_COLOR));
+
+                                                        if(NumberUtils.isCreatable(highLimit)){
+                                                            BigDecimal highLimitValue = new BigDecimal(highLimit);
+                                                            BigDecimal analogValue = new BigDecimal(value);
+                                                            if(analogValue.compareTo(highLimitValue)>0){
+                                                                value = highLimit;
+                                                                IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(highLimit);
+                                                            }
+                                                        }
+
+                                                        if(NumberUtils.isCreatable(lowLimit)){
+                                                            BigDecimal lowLimitValue = new BigDecimal(lowLimit);
+                                                            BigDecimal analogValue = new BigDecimal(value);
+                                                            if(analogValue.compareTo(lowLimitValue)<0){
+                                                                value = lowLimit;
+                                                                IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(lowLimit);
+                                                            }
+                                                        }
+
+                                                        if(useFeedbackNode.equals("Yes")){
+                                                            if(!firstPreview){
+                                                                //topicValueTextView.setText(value);
+                                                                Map<String, Object> finalTopicData = topicData;
+                                                                new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                                        new Runnable() {
+                                                                            public void run() {
+                                                                                if(finalTopicData.get(FEEDBACK_NODE)!=null){
+                                                                                    topicValueTextView.setText(feedback);
+                                                                                }
+                                                                            }
+                                                                        }, feedbackNodeReviewDelay);
+                                                            }
+                                                            else{
+                                                                if(topicData.get(FEEDBACK_NODE)!=null){
+                                                                    topicValueTextView.setText(feedback);
+                                                                }
+                                                            }
+                                                            view.findViewById(R.id.feedbackSignal).setVisibility(View.VISIBLE);
+
+                                                        }else{
+                                                            topicValueTextView.setText(value);
+                                                            view.findViewById(R.id.feedbackSignal).setVisibility(View.INVISIBLE);
+                                                        }
+                                                    }else {
+                                                        topicValueTextView.setText("NaN");
+                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ERROR_COLOR));
+                                                    }
+
+
+                                                    if(NumberUtils.isCreatable(step)){
+                                                        TextView topicStepTextView = (TextView) view.findViewById(R.id.step);
+                                                        topicStepTextView.setText(step);
+                                                    }
+
+                                                    if(topicData.get(UNIT)!=null){
+                                                        TextView unitTextView = (TextView) view.findViewById(R.id.unitTextView);
+                                                        unitTextView.setText(unit);
+                                                    }
+                                                }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                if(type.equals(DIGITAL)){
+                                                    String useFeedbackNode = String.valueOf(topicData.get(USE_FEEDBACK_NODE));
+                                                    String feedback = String.valueOf(topicData.get(FEEDBACK_NODE));
+                                                    String notifyIfSet = String.valueOf(topicData.get(NOTIFY_IF_SET));
+                                                    String notifyIfReset = String.valueOf(topicData.get(NOTIFY_IF_RESET));
+                                                    String textOnSet = String.valueOf(topicData.get(TEXT_ON_SET));
+                                                    String textOnReset = String.valueOf(topicData.get(TEXT_ON_RESET));
+
+                                                    if(topicData.get(VALUE)!=null){
+                                                        if(useFeedbackNode.equals("Yes")){
+                                                            if(!firstPreview){
+//                                                                if(value.equals("true") && topicData.get(TEXT_ON_SET)!=null){
+//                                                                    topicValueTextView.setText(textOnSet);
+//                                                                    topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
+//                                                                    updateDigitalButtonsTexts(topicTag, view);
+//                                                                }
+//
+//                                                                else if(value.equals("false") && topicData.get(TEXT_ON_RESET)!=null) {
+//                                                                    topicValueTextView.setText(textOnReset);
+//                                                                    topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
+//                                                                    updateDigitalButtonsTexts(topicTag, view);
+//                                                                }
+
+                                                                if(topicData.get(FEEDBACK_NODE)!=null){
+                                                                    Map<String, Object> finalTopicData1 = topicData;
+                                                                    new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                                            new Runnable() {
+                                                                                public void run() {
+                                                                                    if(feedback.equals("true") && finalTopicData1.get(TEXT_ON_SET)!=null){
+                                                                                        topicValueTextView.setText(textOnSet);
+                                                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
+                                                                                        updateDigitalButtonsTexts(topicTag, view);
+                                                                                    }
+                                                                                    else if(feedback.equals("false") && finalTopicData1.get(TEXT_ON_RESET)!=null) {
+                                                                                        topicValueTextView.setText(textOnReset);
+                                                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
+                                                                                        updateDigitalButtonsTexts(topicTag, view);
+                                                                                    }
+                                                                                }
+                                                                            }, feedbackNodeReviewDelay);
+                                                                }
+                                                            }
+                                                            else{
+                                                                if(topicData.get(FEEDBACK_NODE)!=null){
+                                                                    if(feedback.equals("true") && topicData.get(TEXT_ON_SET)!=null){
+                                                                        topicValueTextView.setText(textOnSet);
+                                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
+                                                                        updateDigitalButtonsTexts(topicTag, view);
+                                                                    }
+                                                                    else if(feedback.equals("false") && topicData.get(TEXT_ON_RESET)!=null) {
+                                                                        topicValueTextView.setText(textOnReset);
+                                                                        topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
+                                                                        updateDigitalButtonsTexts(topicTag, view);
+                                                                    }
+                                                                }
+                                                            }
+                                                            view.findViewById(R.id.feedbackSignal).setVisibility(View.VISIBLE);
+                                                        }
+                                                        else if(useFeedbackNode.equals("No")){
+                                                            if(value.equals("true") && topicData.get(TEXT_ON_SET)!=null){
+                                                                topicValueTextView.setText(textOnSet);
+                                                                topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
+                                                                updateDigitalButtonsTexts(topicTag, view);
+                                                            }
+
+                                                            else if(value.equals("false") && topicData.get(TEXT_ON_RESET)!=null) {
+                                                                topicValueTextView.setText(textOnReset);
+                                                                topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
+                                                                updateDigitalButtonsTexts(topicTag, view);
+                                                            }
+                                                            view.findViewById(R.id.feedbackSignal).setVisibility(View.INVISIBLE);
+                                                        }
+                                                        else topicValueTextView.setText(value);
+                                                    }
+                                                    else topicValueTextView.setText("");
+                                                }
+
+                                                if(type.equals(MULTISTATE)){
+                                                    Object notifyIfEquals = topicData.get(NOTIFY_IF_EQUALS);
+                                                    if(topicData.get(VALUE)!=null){
+                                                        topicValueTextView.setText(value);
+                                                    }else topicValueTextView.setText("");
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                }
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                                }
+                            });
+
+                    //listeners.add(listener);
                 }
 
             }
@@ -559,6 +869,8 @@ public class  Topics extends AppCompatActivity {
 
     public void inflateAnalogTopicCard(String tag, String name){
 
+        if(name.equals("null")) name = "";
+
         if(!isTagUsed(tag)){
             View topicView = getLayoutInflater().inflate(R.layout.topic_analog,null, false);
             setTopicCardViewTagsAndTexts(topicView, tag, name, ANALOG);
@@ -580,6 +892,7 @@ public class  Topics extends AppCompatActivity {
 
     public void inflateDigitalTopicCard(String tag, String name){
 
+        if(name.equals("null")) name = "";
         if(!isTagUsed(tag)){
             View topicView = getLayoutInflater().inflate(R.layout.topic_digital,null, false);
             setTopicCardViewTagsAndTexts(topicView, tag, name, DIGITAL);
@@ -600,6 +913,7 @@ public class  Topics extends AppCompatActivity {
 
     public void inflateMultiStateTopicCard(String tag, String name){
 
+        if(name.equals("null")) name = "";
         if(!isTagUsed(tag)){
             View topicView = getLayoutInflater().inflate(R.layout.topic_multistate,null, false);
             setTopicCardViewTagsAndTexts(topicView, tag, name, MULTISTATE);
@@ -684,7 +998,7 @@ public class  Topics extends AppCompatActivity {
                                                                                         result = analogValue.add(stepValue);
                                                                                         if(result.compareTo(highLimitValue)>0){
                                                                                             result = highLimitValue;
-                                                                                            Toast.makeText(getApplicationContext(),".../"+thingTag+"/"+topicTag+": High limit reached", Toast.LENGTH_SHORT).show();
+                                                                                            Toast.makeText(getApplicationContext(),thingTag+"/"+topicTag+": High limit reached", Toast.LENGTH_SHORT).show();
                                                                                             IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(true);
                                                                                             IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(null);
                                                                                         }
@@ -696,7 +1010,7 @@ public class  Topics extends AppCompatActivity {
                                                                                             error = true;
                                                                                         }
                                                                                     }else {
-                                                                                        Toast.makeText(getApplicationContext(),".../"+thingTag+"/"+topicTag+": High limit reached", Toast.LENGTH_SHORT).show();
+                                                                                        Toast.makeText(getApplicationContext(),thingTag+"/"+topicTag+": High limit reached", Toast.LENGTH_SHORT).show();
                                                                                         IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(true);
                                                                                         IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(null);
                                                                                     }
@@ -711,6 +1025,29 @@ public class  Topics extends AppCompatActivity {
                                                                                     Log.e(TAG, e.toString());
                                                                                 }
                                                                             }
+
+                                                                            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                                                    new Runnable() {
+                                                                                        public void run() {
+                                                                                            IoT_Database.child(thingTag).child(topicTag).child(VALUE)
+                                                                                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                                                        @Override
+                                                                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                                                            if(snapshot.getValue() != null){
+                                                                                                                TextView topicValueTextView = (TextView) parentView.findViewById(R.id.topicValue);
+                                                                                                                topicValueTextView.setText(snapshot.getValue().toString().trim());
+
+                                                                                                            }
+                                                                                                        }
+
+                                                                                                        @Override
+                                                                                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                                                        }
+                                                                                                    });
+                                                                                        }
+                                                                                    }, feedbackNodeReviewDelay/5);
+
                                                                         }
 
                                                                         @Override
@@ -780,7 +1117,7 @@ public class  Topics extends AppCompatActivity {
                                                                                         result = analogValue.subtract(stepValue);
                                                                                         if (result.compareTo(lowLimitValue) < 0) {
                                                                                             result = lowLimitValue;
-                                                                                            Toast.makeText(getApplicationContext(), ".../"+thingTag + "/" + topicTag + ": Low limit reached", Toast.LENGTH_SHORT).show();
+                                                                                            Toast.makeText(getApplicationContext(), thingTag + "/" + topicTag + ": Low limit reached", Toast.LENGTH_SHORT).show();
                                                                                             IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(true);
                                                                                             IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(null);
                                                                                         }
@@ -792,7 +1129,7 @@ public class  Topics extends AppCompatActivity {
                                                                                         }
 
                                                                                     } else {
-                                                                                        Toast.makeText(getApplicationContext(), ".../"+thingTag + "/" + topicTag + ": Low limit reached", Toast.LENGTH_SHORT).show();
+                                                                                        Toast.makeText(getApplicationContext(), thingTag + "/" + topicTag + ": Low limit reached", Toast.LENGTH_SHORT).show();
                                                                                         IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(true);
                                                                                         IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(null);
                                                                                     }
@@ -807,6 +1144,29 @@ public class  Topics extends AppCompatActivity {
                                                                                     Log.e(TAG, e.toString());
                                                                                 }
                                                                             }
+
+                                                                            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                                                    new Runnable() {
+                                                                                        public void run() {
+                                                                                            IoT_Database.child(thingTag).child(topicTag).child(VALUE)
+                                                                                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                                                        @Override
+                                                                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                                                            if(snapshot.getValue() != null){
+                                                                                                                TextView topicValueTextView = (TextView) parentView.findViewById(R.id.topicValue);
+                                                                                                                topicValueTextView.setText(snapshot.getValue().toString().trim());
+
+                                                                                                            }
+                                                                                                        }
+
+                                                                                                        @Override
+                                                                                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                                                        }
+                                                                                                    });
+                                                                                        }
+                                                                                    }, feedbackNodeReviewDelay/5);
+
                                                                         }
 
                                                                         @Override
@@ -847,11 +1207,13 @@ public class  Topics extends AppCompatActivity {
             if(user != null){
                 DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
                 if(IoT_Database != null) {
+
                     IoT_Database.child(thingTag).child(topicTag).child(Topics.TEXT_ON_SET)
                             .addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     if (!(dataSnapshot.getValue() == null)) {
+                                        String textOnSet = dataSnapshot.getValue().toString();
                                         boolean error = false;
                                         try{
                                             IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(true);
@@ -859,13 +1221,68 @@ public class  Topics extends AppCompatActivity {
                                             IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(true);
                                             IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(null);
 
+
+                                            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                    new Runnable() {
+                                                        public void run() {
+                                                            IoT_Database.child(thingTag).child(topicTag).child(VALUE)
+                                                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                        @Override
+                                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                            if(snapshot.getValue() != null){
+                                                                                if(snapshot.getValue().toString().equals("true")){
+                                                                                    TextView topicValueTextView = (TextView) parentView.findViewById(R.id.topicValue);
+                                                                                    topicValueTextView.setText(textOnSet);
+                                                                                    topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
+                                                                                    updateDigitalButtonsTexts(topicTag, view);
+                                                                                }
+
+                                                                            }
+                                                                        }
+
+                                                                        @Override
+                                                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                        }
+                                                                    });
+                                                        }
+                                                    }, feedbackNodeReviewDelay/4);
+
                                         }catch (Exception e){
                                             Log.e(TAG, e.toString());
                                         }
+
+
                                     }
                                     else{
                                         try{
                                             IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(DEFAULT_TEXT_ON_SET);
+
+                                            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                    new Runnable() {
+                                                        public void run() {
+                                                            IoT_Database.child(thingTag).child(topicTag).child(VALUE)
+                                                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                        @Override
+                                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                            if(snapshot.getValue() != null){
+                                                                                if(snapshot.getValue().toString().equals("true")){
+                                                                                    TextView topicValueTextView = (TextView) parentView.findViewById(R.id.topicValue);
+                                                                                    topicValueTextView.setText(DEFAULT_TEXT_ON_SET);
+                                                                                    topicValueTextView.setTextColor(Color.parseColor(DIGITAL_ON_COLOR));
+                                                                                    updateDigitalButtonsTexts(topicTag, view);
+                                                                                }
+
+                                                                            }
+                                                                        }
+
+                                                                        @Override
+                                                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                        }
+                                                                    });
+                                                        }
+                                                    }, feedbackNodeReviewDelay/4);
                                         }catch (Exception e){
                                             Log.e(TAG, e.toString());
                                         }
@@ -876,6 +1293,7 @@ public class  Topics extends AppCompatActivity {
                                 public void onCancelled(@NonNull DatabaseError databaseError) {
                                 }
                             });
+
                 }
             }
         }
@@ -899,11 +1317,38 @@ public class  Topics extends AppCompatActivity {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     if (!(dataSnapshot.getValue() == null)) {
+                                        String textOnReset = dataSnapshot.getValue().toString();
                                         try{
                                             IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(false);
 
                                             IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(true);
                                             IoT_Database.child(thingTag).child(topicTag).child(TEMP_NODE).setValue(null);
+
+
+                                            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                    new Runnable() {
+                                                        public void run() {
+                                                            IoT_Database.child(thingTag).child(topicTag).child(VALUE)
+                                                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                        @Override
+                                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                            if(snapshot.getValue() != null){
+                                                                                if(snapshot.getValue().toString().equals("false")) {
+                                                                                    TextView topicValueTextView = (TextView) parentView.findViewById(R.id.topicValue);
+                                                                                    topicValueTextView.setText(textOnReset);
+                                                                                    topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
+                                                                                    updateDigitalButtonsTexts(topicTag, view);
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        @Override
+                                                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                        }
+                                                                    });
+                                                        }
+                                                    }, feedbackNodeReviewDelay/4);
 
                                         }catch (Exception e){
                                             Log.e(TAG, e.toString());
@@ -912,6 +1357,31 @@ public class  Topics extends AppCompatActivity {
                                     else{
                                         try{
                                             IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(DEFAULT_TEXT_ON_RESET);
+
+                                            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                                                    new Runnable() {
+                                                        public void run() {
+                                                            IoT_Database.child(thingTag).child(topicTag).child(VALUE)
+                                                                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                        @Override
+                                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                            if(snapshot.getValue() != null){
+                                                                                if(snapshot.getValue().toString().equals("false")) {
+                                                                                    TextView topicValueTextView = (TextView) parentView.findViewById(R.id.topicValue);
+                                                                                    topicValueTextView.setText(DEFAULT_TEXT_ON_RESET);
+                                                                                    topicValueTextView.setTextColor(Color.parseColor(DIGITAL_OFF_COLOR));
+                                                                                    updateDigitalButtonsTexts(topicTag, view);
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        @Override
+                                                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                        }
+                                                                    });
+                                                        }
+                                                    }, feedbackNodeReviewDelay/4);
                                         }catch (Exception e){
                                             Log.e(TAG, e.toString());
                                         }
@@ -939,7 +1409,7 @@ public class  Topics extends AppCompatActivity {
             String type = topicTypeTextView.getText().toString();
 
             TextView topicTagTextView = (TextView) parentView.findViewById(R.id.topicTag);
-            String topicTag = topicTagTextView.getText().toString();
+            String topicTag = parentView.getTag().toString();
 
             if(type.equals(ANALOG)){
 
@@ -971,6 +1441,20 @@ public class  Topics extends AppCompatActivity {
                     startActivity(intent);
                 }
             }
+
+            removeListeners();
+
+
+            ///
+//
+//            //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//            if(user!=null){
+//                //DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+//                if(IoT_Database!=null) {
+//                    //removeAllActiveListeners(IoT_Database);
+//                    IoT_Database.child(thingTag).removeEventListener(childListener);
+//                }
+//            }
         }
     }
 
@@ -1018,7 +1502,7 @@ public class  Topics extends AppCompatActivity {
                         int indexToBeDeleted = getViewParentTopicCardPosition(view);
                         if(indexToBeDeleted>-1) {
                             String topicTagToDelete= getViewTag(view);
-                            gridLayout.removeViewAt(indexToBeDeleted);
+                            //gridLayout.removeViewAt(indexToBeDeleted);
                             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                             if(user != null){
                                 DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
@@ -1038,157 +1522,233 @@ public class  Topics extends AppCompatActivity {
                 .show();
     }
 
-    public synchronized void retrievePreviousTopicsFromFireBaseDatabaseAndListThem(){
+//    public synchronized void retrievePreviousTopicsFromFireBaseDatabaseAndListThem(){
+//
+//        //gridLayout.removeAllViews();
+//
+//        if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+//            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//            if(user != null){
+//                DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+//
+//                if(IoT_Database != null){
+//                    IoT_Database.child(thingTag).addListenerForSingleValueEvent(new ValueEventListener() {
+//                        @Override
+//                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//
+//                            int count = 0;
+//                            List<String> topicTagsList = new ArrayList<String>();
+//                            //topicTagsList.clear();
+//
+//                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) { // fetch all the topics tags from firebase DB and store them in a list
+//                                topicTagsList.add(snapshot.getKey());
+//                                count ++;
+//                                if (count == dataSnapshot.getChildrenCount()){ // make sure all topics tags are retrieved from the firebase DB before start listing them
+//
+//                                    for (int j = 0; j < topicTagsList.size(); j++) { // start listing them in the gridlayout
+//
+//                                        if(!topicTagsList.get(j).isEmpty() && topicTagsList.get(j)!=null) {
+//
+//                                            // read the description from firebase DB and update the topic card:
+//                                            int finalJ = j;
+////                                            IoT_Database.child(thingTag).child(topicTagsList.get(j)).addListenerForSingleValueEvent(new ValueEventListener() {
+////                                                @Override
+////                                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                                                    IoT_Database.child(thingTag).child(topicTagsList.get(finalJ)).child(DESCRIPTION)
+//                                                            .addListenerForSingleValueEvent(new ValueEventListener() {
+//                                                                @Override
+//                                                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//
+//                                                                    String topicName = "";
+//                                                                    if(dataSnapshot.getValue()!=null) {
+//                                                                        topicName = dataSnapshot.getValue().toString();
+//                                                                    }
+//
+//                                                                    // read the type from firebase DB and update the topic card:
+//                                                                    if(!topicName.equals(MainActivity.THING_NAME_TOPIC_DESCRIPTION) ){
+//
+//                                                                        String finalTopicName = topicName;
+//                                                                        IoT_Database.child(thingTag).child(topicTagsList.get(finalJ)).child(TYPE)
+//                                                                                .addListenerForSingleValueEvent(new ValueEventListener() {
+//                                                                                    @Override
+//                                                                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                                                                                        if(dataSnapshot.getValue()!=null){
+//                                                                                            String type = dataSnapshot.getValue().toString();
+//                                                                                            if(!isTagUsed(topicTagsList.get(finalJ))){
+//                                                                                                if(dataSnapshot.getValue()!=null) {
+//                                                                                                    if (type.equals(ANALOG)) {
+//                                                                                                        inflateAnalogTopicCard(topicTagsList.get(finalJ), finalTopicName);
+//                                                                                                    } else if (type.equals(DIGITAL)) {
+//                                                                                                        inflateDigitalTopicCard(topicTagsList.get(finalJ), finalTopicName);
+//                                                                                                    } else if (type.equals(MULTISTATE)) {
+//                                                                                                        inflateMultiStateTopicCard(topicTagsList.get(finalJ), finalTopicName);
+//                                                                                                    }
+//                                                                                                }
+////                                                                                                else{
+////                                                                                                    if(topicData.get(HIGH_LIMIT)!=null || topicData.get(LOW_LIMIT)!=null || topicData.get(STEP)!=null || topicData.get(UNIT)!=null){
+////                                                                                                        IoT_Database.child(thingTag).child(topicTag).child(TYPE).setValue(ANALOG);
+////                                                                                                    }
+////                                                                                                    else if(topicData.get(TEXT_ON_SET)!=null || topicData.get(TEXT_ON_RESET)!=null){
+////                                                                                                        IoT_Database.child(thingTag).child(topicTag).child(TYPE).setValue(DIGITAL);
+////                                                                                                    }
+////                                                                                                    else {
+////                                                                                                        IoT_Database.child(thingTag).child(topicTag).child(TYPE).setValue(MULTISTATE);
+////                                                                                                    }
+////                                                                                                }
+//                                                                                            }
+//                                                                                        }
+//                                                                                    }
+//                                                                                    @Override
+//                                                                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//                                                                                    }
+//                                                                                });
+//                                                                    }
+//
+//
+//                                                                }
+//                                                                @Override
+//                                                                public void onCancelled(@NonNull DatabaseError databaseError) {
+//                                                                }
+//                                                            });
+////                                                }
+////
+////                                                @Override
+////                                                public void onCancelled(@NonNull DatabaseError error) {
+////
+////                                                }
+////                                            });
+//                                        }
+//
+//                                        if (j == topicTagsList.size()-1){
+//
+//                                            //remove unused topic card views (deleted by other devices while this device was offline):
+//                                            for(int k=0; k < gridLayout.getChildCount(); k++){
+//
+//                                                if (!topicTagsList.contains(getViewTag(gridLayout.getChildAt(k)))){
+//                                                    gridLayout.removeViewAt(k);
+//                                                }
+//                                            }
+//
+//                                            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+//                                                    new Runnable() {
+//                                                        public void run() {
+//                                                            firstPreview = false;
+//                                                        }
+//                                                    }, feedbackNodeReviewDelay);
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        @Override
+//                        public void onCancelled(@NonNull DatabaseError databaseError) {
+//                        }
+//                    });
+//                }
+//            }
+//        }
+//    }
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if(user != null){
-            DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
-            if(IoT_Database != null){
-                IoT_Database.child(thingTag).addListenerForSingleValueEvent(new ValueEventListener() { //addValueEventListener
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+    private void getTopicCount(DatabaseReference IoT_Database){
 
-                        int count = 0;
-                        List<String> topicTagsList = new ArrayList<String>();
-                        topicTagsList.clear();
+        IoT_Database.child(thingTag).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.getValue() != null){
+                    topicCount = snapshot.getChildrenCount();
+                }
+            }
 
-                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) { // fetch all the topics tags from firebase DB and store them in a list
-                            topicTagsList.add(snapshot.getKey());
-                            count ++;
-                            if (count == dataSnapshot.getChildrenCount()){ // make sure all topics tags are retrieved from the firebase DB before start listing them
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
 
-                                for (int j = 0; j < topicTagsList.size(); j++) { // start listing them in the gridlayout
+            }
+        });
 
-                                    if(!topicTagsList.get(j).isEmpty() && !(topicTagsList.get(j)==null)) {
+    }
 
-                                        // read the description from firebase DB and update the topic card:
-                                        int finalJ = j;
-                                        IoT_Database.child(thingTag).child(topicTagsList.get(j)).addListenerForSingleValueEvent(new ValueEventListener() {
-                                            @Override
-                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                IoT_Database.child(thingTag).child(topicTagsList.get(finalJ)).child(DESCRIPTION)
-                                                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                                                            @Override
-                                                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+    public void onChildEvents(){
 
-                                                                if(!(dataSnapshot.getValue() == null)){
-                                                                    String topicName = dataSnapshot.getValue().toString();
+        if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if(user != null){
+                DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+                if(IoT_Database!=null){
+                    childListener = IoT_Database.child(thingTag).addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-                                                                    // read the type from firebase DB and update the topic card:
-                                                                    if(!topicName.equals(MainActivity.THING_NAME_TOPIC_DESCRIPTION)){
+                            //if(firstPreview){
 
-                                                                        IoT_Database.child(thingTag).child(topicTagsList.get(finalJ)).child(TYPE)
-                                                                                .addListenerForSingleValueEvent(new ValueEventListener() {
-                                                                                    @Override
-                                                                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                                                                        if(!(dataSnapshot.getValue() == null)){
-                                                                                            String type = dataSnapshot.getValue().toString();
-                                                                                            if(!isTagUsed(topicTagsList.get(finalJ))){
-                                                                                                if (type.equals(ANALOG)) {
-                                                                                                    inflateAnalogTopicCard(topicTagsList.get(finalJ), topicName);
-                                                                                                } else if (type.equals(DIGITAL)) {
-                                                                                                    inflateDigitalTopicCard(topicTagsList.get(finalJ), topicName);
-                                                                                                } else {
-                                                                                                    inflateMultiStateTopicCard(topicTagsList.get(finalJ), topicName);
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                    @Override
-                                                                                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                                                                                    }
-                                                                                });
-                                                                    }
-                                                                }
-                                                            }
-                                                            @Override
-                                                            public void onCancelled(@NonNull DatabaseError databaseError) {
-                                                            }
-                                                        });
-                                            }
 
-                                            @Override
-                                            public void onCancelled(@NonNull DatabaseError error) {
+                            String topicTag = snapshot.getKey();
+                            String topicName = String.valueOf(snapshot.child(DESCRIPTION).getValue());
 
-                                            }
-                                        });
+                            if(!topicName.equals(MainActivity.THING_NAME_TOPIC_DESCRIPTION) ){
+
+                                //counter++;
+                                //if(counter >= topicCount-1) firstPreview =false;
+
+                                if(!isTagUsed(topicTag)){
+                                    String type = String.valueOf(snapshot.child(TYPE).getValue());
+                                    if (type.equals(ANALOG)) {
+                                        inflateAnalogTopicCard(topicTag, topicName);
+                                    } else if (type.equals(DIGITAL)) {
+                                        inflateDigitalTopicCard(topicTag, topicName);
+                                    } else if (type.equals(MULTISTATE)) {
+                                        inflateMultiStateTopicCard(topicTag, topicName);
                                     }
+                                    //Toast.makeText(getApplicationContext(), snapshot.getKey()+": "+type, Toast.LENGTH_LONG).show();
 
-                                    if (j == topicTagsList.size()-1){
-
-                                        //remove unused topic card views (deleted by other devices while this device was offline):
-                                        for(int k=0; k < gridLayout.getChildCount(); k++){
-
-                                            if (!topicTagsList.contains(getViewTag(gridLayout.getChildAt(k)))){
-                                                gridLayout.removeViewAt(k);
-                                            }
-                                        }
-
-                                        new android.os.Handler(Looper.getMainLooper()).postDelayed(
-                                                new Runnable() {
-                                                    public void run() {
-                                                        firstPreview = false;
-                                                    }
-                                                }, feedbackNodeReviewDelay);
-                                    }
                                 }
                             }
+
+                               // firstPreview = false;
+                            //}
+
+                            //Toast.makeText(getApplicationContext(), "Child added: "+snapshot.getKey(), Toast.LENGTH_SHORT).show();
+//                            if(!firstPreview){
+//                                Toast.makeText(getApplicationContext(), "Child added: "+snapshot.getKey(), Toast.LENGTH_SHORT).show();
+//                                //getSingleTopicByTagDataFromFireBaseDatabaseAndUpdateTopicCard(snapshot.getKey());
+//                            }
+
                         }
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                    }
-                });
+
+                        @Override
+                        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                            //if(!firstPreview){
+                                //Toast.makeText(getApplicationContext(), "Child changed: "+snapshot.getKey(), Toast.LENGTH_SHORT).show();
+                                getSingleTopicByTagDataFromFireBaseDatabaseAndUpdateTopicCard(snapshot.getKey());
+                            //}
+
+                        }
+
+                        @Override
+                        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                            //Toast.makeText(getApplicationContext(), "Child deleted: "+snapshot.getKey(), Toast.LENGTH_SHORT).show();
+                            int parentViewPosition = getViewParentTopicCardPositionWithTheSameTag(snapshot.getKey());
+
+                            if(parentViewPosition>-1) {
+                                gridLayout.removeViewAt(parentViewPosition);
+                                //onChildEvents();
+                            }
+                        }
+
+                        @Override
+                        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                }
             }
         }
-    }
-
-    public void onAddOrRemoveChildren(){
-
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if(user != null){
-            DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
-            if(!(IoT_Database==null)){
-                IoT_Database.child(thingTag).addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                        retrievePreviousTopicsFromFireBaseDatabaseAndListThem();
-                    }
-
-                    @Override
-                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-                        retrievePreviousTopicsFromFireBaseDatabaseAndListThem();
-                    }
-
-                    @Override
-                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
-            }
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-//        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-//        DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
-        firstPreview = true;
-        listenerId = 0;
-        retrievePreviousTopicsFromFireBaseDatabaseAndListThem();
-        onAddOrRemoveChildren();
-
     }
 
     @Override
@@ -1200,6 +1760,8 @@ public class  Topics extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        sharedPreferences = getApplicationContext().getSharedPreferences(LauncherActivity.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         Intent intent = getIntent();
         thingTag = intent.getStringExtra("Tag");
@@ -1217,7 +1779,60 @@ public class  Topics extends AppCompatActivity {
         gridLayout = (GridLayout) findViewById(R.id.topicsGridLayout);
 
         monitorInternetConnection();
-        getConnectionToFireBaseDataBaseStatus();
+
+        boolean intentToConnect = sharedPreferences.getBoolean(LauncherActivity.INTENT_TO_CONNECT, false);
+
+        user = FirebaseAuth.getInstance().getCurrentUser();
+        if(user != null) {
+            IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+        }
+
+
+        if(intentToConnect) {
+            getConnectionToFireBaseDataBaseStatus();
+            maintainTheConnectionToFirebase();
+
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        removeListeners();
+
+        getTopicCount(IoT_Database);
+
+        counter = 0;
+
+        gridLayout.removeAllViews();
+
+        firstPreview = true;
+
+        //onChildEvents();
+
+        boolean intentToConnect = sharedPreferences.getBoolean(LauncherActivity.INTENT_TO_CONNECT, false);
+        if(intentToConnect) {
+
+            //onAddOrRemoveChildren();
+            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                new Runnable() {
+                    public void run() {
+                        //retrievePreviousTopicsFromFireBaseDatabaseAndListThem();
+                        onChildEvents();
+                        //Toast.makeText(getApplicationContext(), "topic activity resumed", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                200);
+
+            new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                    new Runnable() {
+                        public void run() {
+                            firstPreview = false;
+                        }
+                    },
+                    800);
+        }
     }
 
     @Override
@@ -1228,19 +1843,82 @@ public class  Topics extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         try {
             connectivityManager.unregisterNetworkCallback(networkCallback);
         }catch (Exception e){
             Log.e(TAG,e.toString());
         }
-        super.onBackPressed();
+        removeListeners();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        removeListeners();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        removeListeners();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        removeListeners();
+    }
+
+    public void removeListeners(){
+        if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+
+            DatabaseReference maintainConnectionRef = FirebaseDatabase.getInstance().getReference().child(LauncherActivity.MAINTAINED_CONNECTION_POINT);
+            DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+            if(user!=null){
+                DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+                if(IoT_Database!=null && childListener!=null) {
+                    IoT_Database.child(thingTag).removeEventListener(childListener);
+                }
+            }
+
+            if(maintainConnectionRef!=null && maintainedConnectionListener!=null) {
+                maintainConnectionRef.removeEventListener(maintainedConnectionListener);
+            }
+
+            if(connectedRef!=null && connectedRefListener!=null) {
+                maintainConnectionRef.removeEventListener(connectedRefListener);
+            }
+        }
+    }
+
+    public void maintainTheConnectionToFirebase(){
+        if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+            DatabaseReference maintainConnectionRef = FirebaseDatabase.getInstance().getReference().child(LauncherActivity.MAINTAINED_CONNECTION_POINT);
+            if (maintainConnectionRef != null) {
+                maintainConnectionRef.setValue(true);
+                maintainedConnectionListener = maintainConnectionRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Log.i(TAG, LauncherActivity.MAINTAINED_CONNECTION_POINT +" > "+ dataSnapshot.getValue());
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        }
     }
 
     public void getConnectionToFireBaseDataBaseStatus(){
 
         if (!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
             DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
-            connectedRef.addValueEventListener(new ValueEventListener() {
+            connectedRefListener = connectedRef.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     boolean connected = snapshot.getValue(Boolean.class);

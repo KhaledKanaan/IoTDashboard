@@ -35,7 +35,7 @@
                 android:text="Digital Topic"
                 android:textColor="@color/color_6"
                 android:textSize="21sp"
-                android:textStyle="bold"></TextView>
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:id="@+id/thingDisplay"
@@ -284,17 +284,18 @@
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/topicTextInputLayout"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
                         android:layout_marginTop="0dp"
                         android:layout_marginEnd="10dp"
                         android:layout_marginBottom="3dp"
                         android:layout_weight="1"
-                        android:hint="Topic tag"
+                        android:hint="Topic"
                         app:boxStrokeColor="@color/color_4"
                         app:boxStrokeWidth="1dp"
-                        app:hintTextColor="@color/color_4">
+                        app:hintTextColor="@color/color_4"
+                        app:prefixText="">
 
                         <EditText
                             android:id="@+id/topicEditText"
@@ -314,7 +315,7 @@
                         android:layout_marginEnd="10dp"
                         android:backgroundTint="#DFDFDF"
                         android:onClick="showFullTag"
-                        android:text="Full tag"
+                        android:text="Path"
                         android:textAllCaps="false"
                         android:textColor="@color/color_6"
                         android:textStyle="bold"
@@ -472,7 +473,7 @@
                             android:background="@null"
                             android:enabled="false"
                             android:inputType="numberSigned|numberDecimal"
-                            android:text="35" />
+                            android:text="false" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout

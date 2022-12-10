@@ -27,6 +27,8 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -35,7 +37,27 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static com.kandroid.iotdashboard.Topics.ACCESS;
+import static com.kandroid.iotdashboard.Topics.ANALOG;
+import static com.kandroid.iotdashboard.Topics.DEFAULT_DESCRIPTION;
+import static com.kandroid.iotdashboard.Topics.DESCRIPTION;
+import static com.kandroid.iotdashboard.Topics.DIGITAL;
+import static com.kandroid.iotdashboard.Topics.FEEDBACK_NODE;
+import static com.kandroid.iotdashboard.Topics.NOTIFY_IF_RESET;
+import static com.kandroid.iotdashboard.Topics.NOTIFY_IF_SET;
+import static com.kandroid.iotdashboard.Topics.READ;
+import static com.kandroid.iotdashboard.Topics.READWRITE;
+import static com.kandroid.iotdashboard.Topics.TEXT_ON_RESET;
+import static com.kandroid.iotdashboard.Topics.TEXT_ON_SET;
+import static com.kandroid.iotdashboard.Topics.TOPIC_NAME;
+import static com.kandroid.iotdashboard.Topics.TYPE;
+import static com.kandroid.iotdashboard.Topics.USE_FEEDBACK_NODE;
+import static com.kandroid.iotdashboard.Topics.VALUE;
+import static com.kandroid.iotdashboard.Topics.val;
 
 public class DigitalTopicConfigurationActivity extends AppCompatActivity {
 
@@ -56,14 +78,24 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
 
     public boolean error, isTopicChanged;
 
+    public TextInputLayout textOnSetTextInputLayout, textOnResetTextInputLayout, topicTextInputLayout;
+
+    //public List<ValueEventListener> listeners = new ArrayList<ValueEventListener>();
+
+    private ValueEventListener listener;
+
+    private FirebaseUser user;
+
+    private DatabaseReference IoT_Database;
+
     public void getPreviousValueAndTextsOnSetAndReset(String topicTag){
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        // = FirebaseAuth.getInstance().getCurrentUser();
         if(user!=null){
-            DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+            //DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
             if(!(IoT_Database==null)) {
 
-                IoT_Database.child(thingTag).child(topicTag).child(Topics.VALUE)
+                IoT_Database.child(thingTag).child(topicTag).child(VALUE)
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -111,11 +143,11 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
 
     public void retrieveValue(String topicTag, String textOnSet, String textOnReset){
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if(user!=null) {
-            DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
-            IoT_Database.child(thingTag).child(topicTag).child(Topics.VALUE)
-                    .addValueEventListener(new ValueEventListener() {
+            //DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+            IoT_Database.child(thingTag).child(topicTag).child(VALUE)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if (!(dataSnapshot.getValue() == null)) {
@@ -129,12 +161,15 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
                                         R.layout.support_simple_spinner_dropdown_item, textsOn_X_ArrayList);
                                 initialValueAutoCompleteTextView.setAdapter(initialValueArrayAdapter);
 
-//                          initialValueAutoCompleteTextView.setText(value, false);
-
                                 if (value.equals("true")) {
-                                    initialValueAutoCompleteTextView.setText(textOnSet, false);
+                                    if(!textOnSet.equals("null")){
+                                        initialValueAutoCompleteTextView.setText(textOnSet, false);
+                                    }else initialValueAutoCompleteTextView.setText(value, false);
+
                                 } else if (value.equals("false")) {
-                                    initialValueAutoCompleteTextView.setText(textOnReset, false);
+                                    if (!textOnReset.equals("null")){
+                                        initialValueAutoCompleteTextView.setText(textOnReset, false);
+                                   }else initialValueAutoCompleteTextView.setText(value, false);
                                 }
                             }
                         }
@@ -147,11 +182,11 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
     }
 
     private void getLastFeedbackValueAndSetItToTheNewTag(String oldTopicTag, String newTopicTag){
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if(user!=null) {
-            DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+            //DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
             IoT_Database.child(thingTag).child(oldTopicTag).child(Topics.FEEDBACK_NODE)
-                    .addValueEventListener(new ValueEventListener() {
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if (!(dataSnapshot.getValue() == null)) {
@@ -176,207 +211,150 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
 
     public void retrieveFeedbackValue(String topicTag, String textOnSet, String textOnReset) {
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if(user!=null) {
-            DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
-            IoT_Database.child(thingTag).child(topicTag).child(Topics.FEEDBACK_NODE)
-                    .addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            if (!(dataSnapshot.getValue() == null)) {
-                                String feedbackValue = dataSnapshot.getValue().toString();
+            //DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+            if(IoT_Database!=null){
+                IoT_Database.child(thingTag).child(topicTag).child(Topics.FEEDBACK_NODE)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (!(dataSnapshot.getValue() == null)) {
+                                    String feedbackValue = dataSnapshot.getValue().toString();
 
-                                ArrayList<String> textsOn_X_ArrayList = new ArrayList<String>() {{
-                                    add(textOnSet);
-                                    add(textOnReset);
-                                }};
-                                ArrayAdapter<String> initialValueArrayAdapter = new ArrayAdapter<String>(DigitalTopicConfigurationActivity.this,
-                                        R.layout.support_simple_spinner_dropdown_item, textsOn_X_ArrayList);
-                                initialValueAutoCompleteTextView.setAdapter(initialValueArrayAdapter);
+                                    ArrayList<String> textsOn_X_ArrayList = new ArrayList<String>() {{
+                                        add(textOnSet);
+                                        add(textOnReset);
+                                    }};
+                                    ArrayAdapter<String> initialValueArrayAdapter = new ArrayAdapter<String>(DigitalTopicConfigurationActivity.this,
+                                            R.layout.support_simple_spinner_dropdown_item, textsOn_X_ArrayList);
+                                    initialValueAutoCompleteTextView.setAdapter(initialValueArrayAdapter);
 
-                                if (feedbackValue.equals("true")) {
-                                    initialValueAutoCompleteTextView.setText(textOnSet, false);
-                                } else if (feedbackValue.equals("false")) {
-                                    initialValueAutoCompleteTextView.setText(textOnReset, false);
+                                    if (feedbackValue.equals("true")) {
+                                        feedbackValueEditText.setText(textOnSet);
+                                    } else if (feedbackValue.equals("false")) {
+                                        feedbackValueEditText.setText(textOnReset);
+                                    }
+
                                 }
                             }
-                        }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-                        }
-                    });
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                            }
+                        });
+            }
         }
     }
 
     public void retrieveSettingsValuesFromFirebaseDatabase(String topicTag){
+        removeListeners();
+
         if(!topicTag.isEmpty() && !(topicTag==null)) {
 
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if(user!=null) {
-                DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+                //DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
 
-                if (!(IoT_Database == null)) {
+                if (IoT_Database != null) {
 
-                    topicEditText.setText(topicTag);
+                    listener = IoT_Database.child(thingTag).child(topicTag).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if(dataSnapshot != null){
 
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.ACCESS)
-                            .addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    if (!(dataSnapshot.getValue() == null)) {
-                                        String access = dataSnapshot.getValue().toString();
+                                topicEditText.setText(dataSnapshot.getKey());
 
-                                        // ReadWriteRadioButton = findViewById(R.id.RW_RadioButton);
-                                        //ReadRadioButton = findViewById(R.id.R_RadioButton);
+                                Map<String, Object> topicData = new HashMap<>();
+                                topicData = (Map<String, Object>) dataSnapshot.getValue();
 
+                                if(topicData != null){
+                                    //value, name, type and access are common for all types of topic
+                                    //String value = String.valueOf(topicData.get(VALUE));
+                                    String topicName = String.valueOf(topicData.get(DESCRIPTION));
+                                    //String type = String.valueOf(topicData.get(TYPE));
+                                    String access = String.valueOf(topicData.get(ACCESS));
+                                    String textOnSet = String.valueOf(topicData.get(TEXT_ON_SET));
+                                    String textOnReset = String.valueOf(topicData.get(TEXT_ON_RESET));
+                                    String useFeedbackNode = String.valueOf(topicData.get(USE_FEEDBACK_NODE));
+                                    String notifyIfSet = String.valueOf(topicData.get(NOTIFY_IF_SET));
+                                    String notifyIfReset = String.valueOf(topicData.get(NOTIFY_IF_RESET));
+                                    String feedback = String.valueOf(topicData.get(FEEDBACK_NODE));
+
+
+                                    ///
+                                    retrieveValue(topicTag, textOnSet, textOnReset);
+
+                                    ///
+                                    if(topicData.get(ACCESS)!=null){
                                         if (access.equals(Topics.READWRITE)) {
                                             ReadWriteRadioButton.setChecked(true);
                                         } else if (access.equals(Topics.READ)) {
                                             ReadRadioButton.setChecked(true);
                                         }
                                     }
-                                }
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-                                }
-                            });
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.DESCRIPTION)
-                            .addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    if (!(dataSnapshot.getValue() == null)) {
-                                        String topicName = dataSnapshot.getValue().toString();
-                                        //topicNameEditText = findViewById(R.id.topicDescriptionEditText);
+                                    ///
+                                    if(topicData.get(DESCRIPTION)!=null){
                                         topicNameEditText.setText(topicName);
                                     }
-                                }
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-                                }
-                            });
-
-
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.TEXT_ON_SET)
-                            .addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    //String textOnSet = Topics.DEFAULT_TEXT_ON_SET;
-                                    if (!(dataSnapshot.getValue() == null)) {
-                                        String textOnSet = dataSnapshot.getValue().toString();
+                                    ///
+                                    if(topicData.get(TEXT_ON_SET)!=null){
                                         textOnSetEditText.setText(textOnSet);
-
-                                        String finalTextOnSet = textOnSet;
-
-                                        IoT_Database.child(thingTag).child(topicTag).child(Topics.TEXT_ON_RESET)
-                                                .addValueEventListener(new ValueEventListener() {
-                                                    @Override
-                                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                                        //String textOnReset = Topics.DEFAULT_TEXT_ON_RESET;
-                                                        if (!(dataSnapshot.getValue() == null)) {
-                                                            String textOnReset = dataSnapshot.getValue().toString();
-                                                            textOnResetEditText.setText(textOnReset);
-
-                                                            String finalTextOnReset = textOnReset;
-
-                                                            IoT_Database.child(thingTag).child(topicTag).child(Topics.USE_FEEDBACK_NODE)
-                                                                    .addValueEventListener(new ValueEventListener() {
-                                                                        @Override
-                                                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                                                            if (!(dataSnapshot.getValue() == null)) {
-                                                                                String useFeedbackNode = dataSnapshot.getValue().toString();
-                                                                                if (useFeedbackNode.equals("No")) {
-                                                                                    useFeedbackNodeAutoCompleteTextView.setText("No", false);
-                                                                                    retrieveValue(topicTag, finalTextOnSet, finalTextOnReset);
-
-                                                                                } else if (useFeedbackNode.equals("Yes")) {
-                                                                                    useFeedbackNodeAutoCompleteTextView.setText("Yes", false);
-                                                                                    retrieveFeedbackValue(topicTag, finalTextOnSet, finalTextOnReset);
-                                                                                }
-                                                                            } else {
-                                                                                useFeedbackNodeAutoCompleteTextView.setText("No", false);
-                                                                                retrieveValue(topicTag, finalTextOnSet, finalTextOnReset);
-                                                                            }
-                                                                        }
-
-                                                                        @Override
-                                                                        public void onCancelled(@NonNull DatabaseError databaseError) {
-                                                                        }
-                                                                    });
-                                                        } else {
-                                                            //textOnResetEditText.setText(Topics.DEFAULT_TEXT_ON_RESET);
-                                                        }
-                                                    }
-
-                                                    @Override
-                                                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                                                    }
-                                                });
-                                    } else {
-                                        //textOnSetEditText.setText(Topics.DEFAULT_TEXT_ON_SET);
                                     }
 
+                                    ///
+                                    if(topicData.get(TEXT_ON_RESET)!=null){
+                                        textOnResetEditText.setText(textOnReset);
+                                    }
 
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-                                }
-                            });
-
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.NOTIFY_IF_SET)
-                            .addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    if (!(dataSnapshot.getValue() == null)) {
-                                        String notifyIfSet = dataSnapshot.getValue().toString();
-                                        if (notifyIfSet.equals("No")) {
-                                            notifyIfSetAutoCompleteTextView.setText("No", false);
-                                        } else if (notifyIfSet.equals("Yes")) {
-                                            notifyIfSetAutoCompleteTextView.setText("Yes", false);
+                                    ///
+                                    if(topicData.get(USE_FEEDBACK_NODE)!=null){
+                                        if (useFeedbackNode.equals("No")) {
+                                            useFeedbackNodeAutoCompleteTextView.setText("No", false);
+                                        } else if (useFeedbackNode.equals("Yes")) {
+                                            useFeedbackNodeAutoCompleteTextView.setText("Yes", false);
                                         }
-                                    } //else notifyIfSetAutoCompleteTextView.setText("No", false);
-                                }
+                                    }
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-                                }
-                            });
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.NOTIFY_IF_RESET)
-                            .addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    if (!(dataSnapshot.getValue() == null)) {
-                                        String notifyIfReset = dataSnapshot.getValue().toString();
-                                        if (notifyIfReset.equals("No")) {
-                                            notifyIfResetAutoCompleteTextView.setText("No", false);
-                                        } else if (notifyIfReset.equals("Yes")) {
-                                            notifyIfResetAutoCompleteTextView.setText("Yes", false);
-                                        }
-                                    } //else notifyIfResetAutoCompleteTextView.setText("No", false);
-                                }
+                                    ///
+                                    retrieveFeedbackValue(topicTag, textOnSet, textOnReset);
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-                                }
-                            });
+                                    ///
+//                                    if(topicData.get(NOTIFY_IF_SET)!=null){
+//                                        if (notifyIfSet.equals("No")) {
+//                                            notifyIfSetAutoCompleteTextView.setText("No", false);
+//                                        } else if (notifyIfSet.equals("Yes")) {
+//                                            notifyIfSetAutoCompleteTextView.setText("Yes", false);
+//                                        }
+//                                    }
 
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.FEEDBACK_NODE)
-                            .addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    if(!(dataSnapshot.getValue()==null)) {
-                                        String feedbackValue = dataSnapshot.getValue().toString();
-                                        feedbackValueEditText.setText(feedbackValue);
+                                    ///
+//                                    if(topicData.get(NOTIFY_IF_RESET)!=null){
+//                                        if (notifyIfReset.equals("No")) {
+//                                            notifyIfResetAutoCompleteTextView.setText("No", false);
+//                                        } else if (notifyIfReset.equals("Yes")) {
+//                                            notifyIfResetAutoCompleteTextView.setText("Yes", false);
+//                                        }
+//                                    }
+
+                                    ///
+                                    if(topicData.get(FEEDBACK_NODE)!=null){
+                                        feedbackValueEditText.setText(feedback);
                                     }
                                 }
+                            }
+                        }
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-                                }
-                            });
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+
+                    //listeners.add(listener);
+
                 }
             }
         }
@@ -384,13 +362,13 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
 
     public void saveConfigurationsToFirebase(){
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if(user!=null) {
-            DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+            //DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
 
             error = false;
 
-            if (!(IoT_Database == null)) {
+            if (IoT_Database != null) {
 
                 String topicTag = topicEditText.getText().toString().trim();
                 String topicName = topicNameEditText.getText().toString().trim();
@@ -401,24 +379,28 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
                 String notifyIfReset = notifyIfResetAutoCompleteTextView.getText().toString().trim();
                 String useFeedbackNode = useFeedbackNodeAutoCompleteTextView.getText().toString().trim();
 
-                if (!(topicName.isEmpty())) {
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.DESCRIPTION).setValue(topicName);
-                } else
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.DESCRIPTION).setValue(Topics.DEFAULT_DESCRIPTION);
+                Map<String, Object> topicData = new HashMap<>();
 
-                if (ReadWriteRadioButton.isChecked()) {
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.ACCESS).setValue(Topics.READWRITE);
-                } else if (ReadRadioButton.isChecked()) {
-                    IoT_Database.child(thingTag).child(topicTag).child(Topics.ACCESS).setValue(Topics.READ);
+                topicData.put(TYPE, DIGITAL);
+
+                if(!topicName.isEmpty()) {
+                    topicData.put(DESCRIPTION, topicName);
+                }else topicData.put(DESCRIPTION, DEFAULT_DESCRIPTION);
+
+                if (ReadWriteRadioButton.isChecked()){
+                    topicData.put(ACCESS, READWRITE);
+                } else if (ReadRadioButton.isChecked()){
+                    topicData.put(ACCESS, READ);
                 }
 
-                IoT_Database.child(thingTag).child(topicTag).child(Topics.NOTIFY_IF_SET).setValue(notifyIfSet);
+                //topicData.put(Topics.NOTIFY_IF_SET, notifyIfSet);
+                //topicData.put(Topics.NOTIFY_IF_RESET, notifyIfReset);
 
-                IoT_Database.child(thingTag).child(topicTag).child(Topics.NOTIFY_IF_RESET).setValue(notifyIfReset);
+                if(!useFeedbackNode.isEmpty()){
+                    topicData.put(USE_FEEDBACK_NODE, useFeedbackNode);
+                }else topicData.put(USE_FEEDBACK_NODE, "No");
 
-                IoT_Database.child(thingTag).child(topicTag).child(Topics.USE_FEEDBACK_NODE).setValue(useFeedbackNode);
-
-                IoT_Database.child(thingTag).child(topicTag).child(Topics.TYPE).setValue(Topics.DIGITAL);
+                IoT_Database.child(thingTag).child(topicTag).updateChildren(topicData);
 
                 manageValue(topicTag);
 
@@ -426,7 +408,9 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
 
                 manageResults();
 
+
                 if (isTopicChanged) {
+                    //Toast.makeText(this,"Cccc", Toast.LENGTH_SHORT).show();
 
                     new android.os.Handler(Looper.getMainLooper()).postDelayed(
                             new Runnable() {
@@ -441,7 +425,11 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
         }
     }
 
+
     public void saveConfigurations (View view){
+
+        textOnSetTextInputLayout.setError(null);
+        textOnResetTextInputLayout.setError(null);
 
         String topicTag = topicEditText.getText().toString().trim();
 
@@ -456,9 +444,9 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
                     .setPositiveButton(Html.fromHtml("<font color='black'>Yes</font>"), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                            //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                             if(user!=null){
-                            DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+                            //DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
                             if(!(IoT_Database==null)){
                                 IoT_Database.child(thingTag).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
@@ -475,7 +463,11 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
                                                     Toast.makeText(getApplicationContext(),"\""+topicTag+"\""+" is already used", Toast.LENGTH_LONG).show();
                                                 }
                                                 else{
+                                                    removeListeners();
                                                     isTopicChanged = true;
+
+                                                    //IoT_Database.removeEventListener(topicEventListener);
+
                                                     getLastFeedbackValueAndSetItToTheNewTag(initialTopicTag, topicTag);
                                                     saveConfigurationsToFirebase();
 
@@ -486,7 +478,7 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
                                                                     initialTopicTag = topicTag;
                                                                 }
                                                             },
-                                                            1000);
+                                                            300);
 
                                                 }
                                             }
@@ -512,9 +504,9 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
     }
 
     public void manageValue(String topicTag){
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if(user!=null) {
-            DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+            //DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
             if (!(IoT_Database == null)) {
 
                 String textOnSet = textOnSetEditText.getText().toString().trim();
@@ -533,24 +525,24 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
                     if (previousValue.equals("true")) {
                         initialValueAutoCompleteTextView.setText(textOnSet, false);
                         //value = textOnSet;
-                        IoT_Database.child(thingTag).child(topicTag).child(Topics.VALUE).setValue(true);
+                        IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(true);
                         //IoT_Database.child(thingTag).child(topicTag).child(Topics.BOOLEAN_VALUE).setValue(true);
                         //previousValue = "true";
                     } else {
                         initialValueAutoCompleteTextView.setText(textOnReset, false);
                         //value = textOnReset;
-                        IoT_Database.child(thingTag).child(topicTag).child(Topics.VALUE).setValue(false);
+                        IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(false);
                         //IoT_Database.child(thingTag).child(topicTag).child(Topics.BOOLEAN_VALUE).setValue(false);
                         //previousValue = "false";
                     }
 
                 } else {
                     if (value.equals(textOnSet)) {
-                        IoT_Database.child(thingTag).child(topicTag).child(Topics.VALUE).setValue(true);
+                        IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(true);
                         //IoT_Database.child(thingTag).child(topicTag).child(Topics.BOOLEAN_VALUE).setValue(true);
                         previousValue = "true";
                     } else {
-                        IoT_Database.child(thingTag).child(topicTag).child(Topics.VALUE).setValue(false);
+                        IoT_Database.child(thingTag).child(topicTag).child(VALUE).setValue(false);
                         //IoT_Database.child(thingTag).child(topicTag).child(Topics.BOOLEAN_VALUE).setValue(false);
                         previousValue = "false";
                     }
@@ -566,19 +558,19 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
                 new Runnable() {
                     public void run() {
                         if(!error) {
-                            initialValueAutoCompleteTextView.setError(null);
+                            //initialValueAutoCompleteTextView.setError(null);
                             Toast.makeText(DigitalTopicConfigurationActivity.this,"Configuration saved",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }
                 },
-                500);
+                300);
     }
 
     public void manageTextsOnSetAndReset(String topicTag){
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if(user!=null) {
-            DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+            //DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
 
             String textOnSet = textOnSetEditText.getText().toString().trim();
             String textOnReset = textOnResetEditText.getText().toString().trim();
@@ -589,33 +581,26 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
                         IoT_Database.child(thingTag).child(topicTag).child(Topics.TEXT_ON_SET).setValue(textOnSet);
                         IoT_Database.child(thingTag).child(topicTag).child(Topics.TEXT_ON_RESET).setValue(textOnReset);
                     } else {
-                        textOnResetEditText.setError(ERROR_TOR_NE_TOS);
-                        textOnResetEditText.requestFocus();
+                        textOnResetTextInputLayout.setError(ERROR_TOR_NE_TOS);
+                        //textOnResetEditText.setError(ERROR_TOR_NE_TOS);
+                        //textOnResetEditText.requestFocus();
                         error = true;
                     }
                 } else {
-                    textOnResetEditText.setError(ERROR_TOR_NE_EMPTY);
-                    textOnResetEditText.requestFocus();
+                    textOnResetTextInputLayout.setError(ERROR_TOR_NE_EMPTY);
+                    //textOnResetEditText.setError(ERROR_TOR_NE_EMPTY);
+                    //textOnResetEditText.requestFocus();
                     error = true;
                 }
             } else {
-                textOnSetEditText.setError(ERROR_TOS_NE_EMPTY);
-                textOnSetEditText.requestFocus();
+                textOnSetTextInputLayout.setError(ERROR_TOS_NE_EMPTY);
+                //textOnSetEditText.setError(ERROR_TOS_NE_EMPTY);
+                //textOnSetEditText.requestFocus();
                 error = true;
             }
         }
     }
 
-//    public void buildMenu(View v){
-//
-//        textOnSet = textOnSetEditText.getText().toString().trim();
-//        textOnReset = textOnResetEditText.getText().toString().trim();
-//
-//        ArrayList<String> textsOn_X_ArrayList = new ArrayList<String>() {{add(textOnSet); add(textOnReset);}};
-//        initialValueArrayAdapter = new ArrayAdapter<String>(DigitalTopicConfigurationActivity.this,
-//                R.layout.support_simple_spinner_dropdown_item, textsOn_X_ArrayList);
-//        initialValueAutoCompleteTextView.setAdapter(initialValueArrayAdapter);
-//    }
 
     public void updateValueDropDownOptions(){
 
@@ -630,7 +615,7 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
 
     public void showFullTag (View view){
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             FirebaseAuth mAuth = FirebaseAuth.getInstance();
             String userID = mAuth.getCurrentUser().getUid();
@@ -638,7 +623,7 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
                 String Tag = userID + "/Things" + "/" + thingTag + "/" + initialTopicTag;
                 AlertDialog newDialog = new AlertDialog.Builder(DigitalTopicConfigurationActivity.this)
 
-                        .setTitle("Full tag:")
+                        .setTitle("Topic path:")
                         .setMessage(Tag)
                         .setPositiveButton(Html.fromHtml("<font color='black'><small>Copy to clipboard</small></font>"), new DialogInterface.OnClickListener() {
                             @Override
@@ -648,7 +633,7 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
                                     ClipData clip = ClipData.newPlainText(TAG, Tag);
                                     clipboard.setPrimaryClip(clip);
 
-                                    Toast.makeText(DigitalTopicConfigurationActivity.this, "Tag copied to clipboard", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(DigitalTopicConfigurationActivity.this, "Topic path copied to clipboard", Toast.LENGTH_LONG).show();
                                 }
                             }
                         })
@@ -673,11 +658,18 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+        user = FirebaseAuth.getInstance().getCurrentUser();
+        if(user != null) {
+            IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+        }
+
         Intent intent = getIntent();
 
         thingTag = intent.getStringExtra(Topics.THING_TAG);
         thingName = intent.getStringExtra(Topics.THING_DESCRIPTION_NAME);
         initialTopicTag = intent.getStringExtra(Topics.TOPIC_TAG);
+
+        //Toast.makeText(getApplicationContext(), initialTopicTag, Toast.LENGTH_LONG).show();
 
         topicTag = initialTopicTag;
         isTopicChanged = false;
@@ -709,6 +701,12 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
         notifyIfSetAutoCompleteTextView.setAdapter(notifyIf_X_ArrayAdapter);
         notifyIfResetAutoCompleteTextView.setAdapter(notifyIf_X_ArrayAdapter);
         useFeedbackNodeAutoCompleteTextView.setAdapter(notifyIf_X_ArrayAdapter);
+
+        textOnSetTextInputLayout = findViewById(R.id.TextOnSetTextInputLayout);
+        textOnResetTextInputLayout = findViewById(R.id.TextOnResetTextInputLayout);
+        topicTextInputLayout = findViewById(R.id.topicTextInputLayout);
+
+        topicTextInputLayout.setPrefixText(thingTag+"/");
 
         getPreviousValueAndTextsOnSetAndReset(topicTag);
 
@@ -753,5 +751,45 @@ public class DigitalTopicConfigurationActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+
+    public void removeListeners(){
+        if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if(user!=null){
+                DatabaseReference IoT_Database = MainActivity.getThingsDatabaseReference(LauncherActivity.SERVER_TYPE, user.getUid());
+                if(IoT_Database!=null){
+                    try {
+                        IoT_Database.child(thingTag).child(initialTopicTag).removeEventListener(listener);
+                    }catch(Exception e){
+                        Log.e(TAG, e.toString());
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        removeListeners();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        removeListeners();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        removeListeners();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        removeListeners();
     }
 }

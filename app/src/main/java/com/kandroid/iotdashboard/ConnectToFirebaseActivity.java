@@ -1,5 +1,9 @@
 package com.kandroid.iotdashboard;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,6 +46,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
@@ -52,9 +57,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.installations.Utils;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.obsez.android.lib.filechooser.ChooserDialog;
 
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,12 +85,14 @@ import static android.os.Environment.getExternalStoragePublicDirectory;
 public class ConnectToFirebaseActivity extends AppCompatActivity {
 
     private EditText databaseUrlEditText, apiKeyEditText, applicationIdEditText;
+    private TextInputLayout databaseUrlTextInputLayout, apiKeyTextInputLayout, applicationIdTextInputLayout;
     private String TAG = "ConnectToFirebaseActivity";
     public static Button connectionButton, browseForJsonFileButton;
     public boolean isConnected = false, connectedToTheInternet = false;
     private final int PERMISSION_REQUEST_CODE =1000, READ_REQUEST_CODE = 42;
     public ConnectivityManager connectivityManager;
     public ConnectivityManager.NetworkCallback networkCallback;
+    public ActivityResultLauncher<Intent> activityResultLauncher;
     public static SharedPreferences sharedPreferences;
 
     private String readTextFromUri(Uri uri) throws IOException {
@@ -98,78 +113,178 @@ public class ConnectToFirebaseActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/json");
-        startActivityForResult(intent, READ_REQUEST_CODE);
+
+        activityResultLauncher.launch(intent);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            if (data != null) {
-                Uri uri = data.getData();
-                String jsonData = null;
+    public String[] parseJsonString(String googleServicesString){
+
+        String[] options = new String[]{null, null, null, "valid", "parsable", "accessible"};
+
+        if(googleServicesString != null){
+            if(isValidJson(googleServicesString)) {
+
+                JsonObject googleServicesJson = null;
+
                 try {
-                    jsonData = readTextFromUri(uri);
+                    googleServicesJson = JsonParser.parseString(googleServicesString).getAsJsonObject();
+                } catch (JsonSyntaxException e) {
+                    Toast.makeText(getApplicationContext(), "Unable to parse Json file",Toast.LENGTH_LONG).show();
+                    options[4] = "non-parsable";
+                    Log.e(TAG, e.toString());
+                    return options;
+                }
 
-                    if(!(jsonData==null) && !(jsonData.isEmpty())){
-                        String finalJsonData = jsonData;
-                        new Handler(Looper.getMainLooper()).postDelayed(
-                                new Runnable() {
-                                    public void run() {
-                                        //get application Id:
-                                        String applicationId = StringUtils.substringBetween(finalJsonData,
-                                                "mobilesdk_app_id\":", ",");
-                                        if(!(applicationId == null) && !(applicationId.isEmpty())){
-                                            applicationId = applicationId
-                                                    .replaceAll(",", "")
-                                                    .replaceAll("\"", "")
-                                                    .replaceAll("\\}", "")
-                                                    .replaceAll("\\{", "")
-                                                    .replaceAll("\\[", "")
-                                                    .replaceAll("\\]", "")
-                                                    .trim();
-                                            applicationIdEditText.setText(applicationId);
-                                        }
+                if (googleServicesJson != null) {
 
-                                        //get database Url:
-                                        String databaseUrl = StringUtils.substringBetween(finalJsonData,
-                                                "firebase_url\":", ",");
-                                        if(!(databaseUrl == null) && !(databaseUrl.isEmpty())){
-                                            databaseUrl = databaseUrl
-                                                    .replaceAll(",", "")
-                                                    .replaceAll("\"", "")
-                                                    .replaceAll("\\}", "")
-                                                    .replaceAll("\\{", "")
-                                                    .replaceAll("\\[", "")
-                                                    .replaceAll("\\]", "")
-                                                    .trim();
-                                            databaseUrlEditText.setText(databaseUrl);
+                    String firebase_url = getFirebaseUrl(googleServicesJson);
+                    options[0] = firebase_url;
 
-                                        }
+                    JsonObject client = getTheClientJsonHoldingThisPackageName(googleServicesJson);
 
-                                        //get api key:
-                                        String apiKey = StringUtils.substringBetween(finalJsonData,
-                                                "current_key\":", ",");
-                                        if(!(apiKey == null) && !(apiKey.isEmpty())){
-                                            apiKey = apiKey
-                                                    .replaceAll(",", "")
-                                                    .replaceAll("\"", "")
-                                                    .replaceAll("\\}", "")
-                                                    .replaceAll("\\{", "")
-                                                    .replaceAll("\\[", "")
-                                                    .replaceAll("\\]", "")
-                                                    .trim();
-                                            apiKeyEditText.setText(apiKey);
-                                        }
-                                    }
-                                },
-                                200);
+                    if (client != null) {
+
+                        String api_key = getApiKey(client);
+                        options[1] = api_key;
+
+                        String app_id = getAppId(client);
+                        options[2] = app_id;
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                }
+            }else {
+                Toast.makeText(getApplicationContext(), "The selected file does not have a valid Json format",Toast.LENGTH_LONG).show();
+                options[3] = "non-valid";
+            }
+        }else {
+            Toast.makeText(getApplicationContext(), "Unable to read the Json file",Toast.LENGTH_LONG).show();
+            options[5] = "inaccessible";
+        }
+
+        return options;
+    }
+
+    public boolean isValidJson(String json) {
+        try {
+            JsonParser.parseString(json);
+        } catch (JsonSyntaxException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public String getFirebaseUrl(JsonObject googleServicesJson){
+        String firebase_url = null;
+        if(googleServicesJson!=null){
+            if(googleServicesJson.has("project_info") && googleServicesJson.get("project_info").isJsonObject()){
+
+                try{
+                    //get project_info json object:
+                    JsonObject project_info = googleServicesJson.getAsJsonObject("project_info");
+
+                    if(project_info.has("firebase_url") && project_info.get("firebase_url").isJsonPrimitive()) {
+                        try{
+                            //get the firebase URL string:
+                            firebase_url = project_info.get("firebase_url").getAsString();
+                        }catch (Exception e){
+                            Log.e(TAG, e.toString());
+                            return null;
+                        }
+                    }
+                }catch (Exception e){
+                    Log.e(TAG, e.toString());
+                    return null;
                 }
             }
         }
+        return firebase_url;
+    }
+
+    public String getAppId(JsonObject client){
+        String mobilesdk_app_id = null;
+        if(client!=null){
+            if(client.has("client_info") && client.get("client_info").isJsonObject()) {
+
+                try{
+                    JsonObject client_info = client.getAsJsonObject("client_info");
+
+                    if(client_info.has("mobilesdk_app_id") && client_info.get("mobilesdk_app_id").isJsonPrimitive()) {
+                        try {
+                            mobilesdk_app_id = client.getAsJsonObject().getAsJsonObject("client_info").get("mobilesdk_app_id").getAsString();
+                        } catch (Exception e) {
+                            Log.e(TAG, e.toString());
+                            return null;
+                        }
+                    }
+                }catch (Exception e){
+                    Log.e(TAG, e.toString());
+                    return null;
+                }
+            }
+        }
+        //Log.i("JParser", mobilesdk_app_id);
+        return mobilesdk_app_id;
+    }
+
+    public String getApiKey(JsonObject client){
+        String current_key = null;
+        if(client!=null){
+            if(client.has("api_key") && client.get("api_key").isJsonArray()) {
+
+                JsonArray api_keys = client.getAsJsonArray("api_key");
+
+                for(JsonElement api_key : api_keys){
+
+                    JsonObject api_key_object = api_key.getAsJsonObject();
+
+                    if (api_key_object.has("current_key") && api_key_object.get("current_key").isJsonPrimitive()){
+
+                        try{
+                            current_key = api_key.getAsJsonObject().get("current_key").getAsString();
+                        }
+                        catch (Exception e){
+                            Log.e(TAG, e.toString());
+                            return null;
+                        }
+                    }
+                }
+            }
+        }
+        //Log.i("JParser", current_key);
+        return current_key;
+    }
+
+    public JsonObject getTheClientJsonHoldingThisPackageName(JsonObject googleServicesJson){
+
+        if(googleServicesJson!=null){
+            if(googleServicesJson.has("client")) {
+
+                JsonElement clientsElement = googleServicesJson.get("client");
+
+                String PACKAGE_NAME = getApplicationContext().getPackageName();
+
+                if (clientsElement instanceof JsonArray) {
+
+                    JsonArray clientsJsonArray = (JsonArray) clientsElement;
+
+                    for (JsonElement client : clientsJsonArray) {
+
+                        String package_name = "";
+
+                        try {
+                            package_name = client.getAsJsonObject().getAsJsonObject("client_info").getAsJsonObject("android_client_info").get("package_name").getAsString();
+                        } catch (Exception e) {
+                            Log.e(TAG, e.toString());
+                            return null;
+                        }
+
+                        if (package_name.equals(PACKAGE_NAME)) {
+                            return client.getAsJsonObject();
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
 
@@ -310,20 +425,10 @@ public class ConnectToFirebaseActivity extends AppCompatActivity {
 
         sharedPreferences.edit().putBoolean(LauncherActivity.INTENT_TO_CONNECT, false).apply();
         if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()){
-            //Log.i("flexx1", FirebaseApp.getApps(getApplicationContext()).toString());
+
             try {
                 FirebaseDatabase.getInstance().goOffline();
                 getConnectionToFireBaseDataBaseStatus();
-
-                new android.os.Handler(Looper.getMainLooper()).postDelayed(
-                        new Runnable() {
-                            public void run() {
-                                //FirebaseApp.getInstance().delete();
-                                //Log.i("flexx2", FirebaseApp.getApps(getApplicationContext()).toString());
-
-                            }
-                        },
-                        500);
 
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
@@ -336,13 +441,7 @@ public class ConnectToFirebaseActivity extends AppCompatActivity {
     }
 
     public void connectToFireBaseDataBase(String databaseUrl, String apiKey, String applicationId){
-        //        String registeredDatabaseUrl = sharedPreferences.getString(LauncherActivity.DATABASE_URL, LauncherActivity.DEFAULT_DATABASE_URL);
-        //        String registeredApiKey = sharedPreferences.getString(LauncherActivity.API_KEY, LauncherActivity.DEFAULT_API_KEY);
-        //        String registeredApplicationId = sharedPreferences.getString(LauncherActivity.APPLICATION_ID, LauncherActivity.DEFAULT_APPLICATION_ID);
 
-        //        if(!databaseUrl.equals(registeredDatabaseUrl) || !apiKey.equals(registeredApiKey) || !applicationId.equals(registeredApplicationId)){
-
-        //Log.i("flexx3", FirebaseApp.getApps(getApplicationContext()).toString());
         try{
             if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
                 FirebaseApp.getInstance().delete();
@@ -364,8 +463,6 @@ public class ConnectToFirebaseActivity extends AppCompatActivity {
                                     .build();
                             FirebaseApp.initializeApp(getApplicationContext(), options);
 
-                            //Log.i("flexx4", FirebaseApp.getApps(getApplicationContext()).toString());
-
                             new android.os.Handler(Looper.getMainLooper()).postDelayed(
                                     new Runnable() {
                                         public void run() {
@@ -375,35 +472,17 @@ public class ConnectToFirebaseActivity extends AppCompatActivity {
                                     },
                                     500);
 
-
                         }catch (Exception e){
                             Log.e(TAG, e.toString());
-                            if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
-                                //try{FirebaseApp.getInstance().delete();}catch(Exception ex){Log.e(TAG, ex.toString());}
-                            }
-                            Toast.makeText(ConnectToFirebaseActivity.this, "Insert correct Database URL, API Key and App. ID", Toast.LENGTH_LONG).show();
+//                            if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+//                                //try{FirebaseApp.getInstance().delete();}catch(Exception ex){Log.e(TAG, ex.toString());}
+//                            }
+                            Toast.makeText(ConnectToFirebaseActivity.this, "Insert correct Database Url, API Key and App Id", Toast.LENGTH_LONG).show();
                         }
                     }
                 },
                 200);
 
-
-//        new android.os.Handler(Looper.getMainLooper()).postDelayed(
-//                new Runnable() {
-//                    public void run() {
-//                        maintainTheConnectionToFirebase();
-//                        getConnectionToFireBaseDataBaseStatus();
-//                    }
-//                },
-//                1000);
-
-        //}
-//        else{
-//            if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()){
-//                FirebaseDatabase.getInstance().goOnline();
-//                maintainTheConnectionToFirebase();
-//            }
-//        }
     }
 
     public void enableViews(Boolean enable){
@@ -441,6 +520,10 @@ public class ConnectToFirebaseActivity extends AppCompatActivity {
         apiKeyEditText = findViewById(R.id.apiKeyEditText);
         applicationIdEditText = findViewById(R.id.applicationIdEditText);
 
+        databaseUrlTextInputLayout = (TextInputLayout) findViewById(R.id.databaseUrlTextInputLayout);
+        apiKeyTextInputLayout = (TextInputLayout) findViewById(R.id.apiKeyTextInputLayout);
+        applicationIdTextInputLayout = (TextInputLayout) findViewById(R.id.applicationIdTextInputLayout);
+
         String databaseUrl = sharedPreferences.getString(LauncherActivity.DATABASE_URL, LauncherActivity.DEFAULT_DATABASE_URL);
         String apiKey = sharedPreferences.getString(LauncherActivity.API_KEY, LauncherActivity.DEFAULT_API_KEY);
         String applicationId = sharedPreferences.getString(LauncherActivity.APPLICATION_ID, LauncherActivity.DEFAULT_APPLICATION_ID);
@@ -451,6 +534,89 @@ public class ConnectToFirebaseActivity extends AppCompatActivity {
 
         connectionButton = findViewById(R.id.connectionToFirebaseButton);
         browseForJsonFileButton = findViewById(R.id.browseForJsonFileButton);
+
+
+
+
+
+        // Under test:
+        activityResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            // There are no request codes
+                            Intent data = result.getData();
+
+                            if (data != null) {
+
+                                databaseUrlTextInputLayout.setError(null);
+                                apiKeyTextInputLayout.setError(null);
+                                applicationIdTextInputLayout.setError(null);
+
+                                Uri uri = data.getData();
+                                String jsonData = null;
+
+                                try {
+                                    jsonData = readTextFromUri(uri);
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+
+                                if(jsonData!=null && !(jsonData.isEmpty())){
+
+                                    String[] options = parseJsonString(jsonData);
+
+                                    if(options[3].equals("valid") && options[4].equals("parsable") && options[5].equals("accessible")){
+
+                                        if(options[0]!=null && !(options[0].isEmpty())) {
+                                            databaseUrlEditText.setText(options[0]);
+                                        }else {
+                                            //Toast.makeText(getApplicationContext(), "Database URL not found",Toast.LENGTH_SHORT).show();
+                                            databaseUrlEditText.setText("");
+
+                                            databaseUrlTextInputLayout.setError("Database URL not found");
+                                        }
+
+                                        if(options[1]!=null && !(options[1].isEmpty())) {
+                                            apiKeyEditText.setText(options[1]);
+                                        }else {
+                                            //Toast.makeText(getApplicationContext(), "API key not found",Toast.LENGTH_SHORT).show();
+                                            apiKeyEditText.setText("");
+
+                                            apiKeyTextInputLayout.setError("Api key not found");
+                                        }
+
+                                        if(options[2]!=null && !(options[2].isEmpty())) {
+                                            applicationIdEditText.setText(options[2]);
+                                        }else {
+                                            //Toast.makeText(getApplicationContext(), "Application ID not found",Toast.LENGTH_SHORT).show();
+                                            applicationIdEditText.setText("");
+
+                                            applicationIdTextInputLayout.setError("App ID not fount");
+                                        }
+                                    }
+                                    else{
+
+                                        databaseUrlEditText.setText("");
+                                        databaseUrlTextInputLayout.setError("Database URL not found");
+
+                                        apiKeyEditText.setText("");
+                                        apiKeyTextInputLayout.setError("Api key not found");
+
+                                        applicationIdEditText.setText("");
+                                        applicationIdTextInputLayout.setError("App ID not fount");
+                                    }
+                                }
+                            }
+
+
+
+                        }
+                    }
+                });
 
     }
 
@@ -512,10 +678,11 @@ public class ConnectToFirebaseActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        if (requestCode==PERMISSION_REQUEST_CODE) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.i(TAG, "Permission Granted.");
-            }else {
+            } else {
                 Log.i(TAG, "Permission Denied.");
                 finish();
             }

@@ -289,16 +289,17 @@
                     android:orientation="horizontal"
                     android:paddingTop="5dp">
 
-                    <!--                    <TextView-->
-                    <!--                        android:layout_width="wrap_content"-->
-                    <!--                        android:layout_height="wrap_content"-->
-                    <!--                        android:id="@+id/preTagTextView"-->
-                    <!--                        android:layout_marginStart="10dp"-->
-                    <!--                        android:textSize="15sp"-->
-                    <!--                        android:textColor="@color/color_6"-->
-                    <!--                        >-->
+<!--                    <TextView-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:id="@+id/preTagTextView"-->
+<!--                        android:layout_marginStart="10dp"-->
+<!--                        android:textSize="15sp"-->
+<!--                        android:textColor="@color/color_6"-->
+<!--                        android:text="Thing/"-->
+<!--                        >-->
 
-                    <!--                    </TextView>-->
+<!--                    </TextView>-->
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/topicTextInputLayout"
@@ -310,10 +311,11 @@
                         android:layout_marginEnd="10dp"
                         android:layout_marginBottom="3dp"
                         android:layout_weight="1"
-                        android:hint="Topic tag"
+                        android:hint="Topic"
                         app:boxStrokeColor="@color/color_4"
                         app:boxStrokeWidth="1dp"
-                        app:hintTextColor="@color/color_4">
+                        app:hintTextColor="@color/color_4"
+                        app:prefixText="">
 
                         <EditText
                             android:id="@+id/topicEditText"
@@ -333,7 +335,7 @@
                         android:layout_marginTop="0dp"
                         android:layout_marginEnd="10dp"
                         android:onClick="showFullTag"
-                        android:text="Full tag"
+                        android:text="Path"
                         android:textAllCaps="false"
                         android:textColor="@color/color_6"
                         android:textStyle="bold"
@@ -490,7 +492,7 @@
                             android:background="@null"
                             android:enabled="false"
                             android:inputType="numberSigned|numberDecimal"
-                            android:text="35" />
+                            android:text="0" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout

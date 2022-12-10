@@ -38,7 +38,22 @@
         android:id="@+id/aboutItem"
         android:enabled="true"
         android:icon="@drawable/ic_baseline_info_24"
+        android:onClick="about"
         android:title="About" />
+
+    <item
+        android:id="@+id/privacyPolicyItem"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_privacy_policy_24"
+        android:onClick="privacyPolicy"
+        android:title="Privacy policy" />
+
+    <item
+        android:id="@+id/licenseAgreementItem"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_license_24"
+        android:onClick="licenseAgreement"
+        android:title="License agreement" />
 
     <item
         android:id="@+id/guideItem"
@@ -59,8 +74,9 @@
             <item
                 android:id="@+id/guideStepByStepVideoItem"
                 android:enabled="true"
-                android:icon="@drawable/ic_baseline_playlist_play_24"
-                android:title="Step by step video" />
+                android:icon="@drawable/ic_baseline_step_by_step_24"
+                android:onClick="goToStepByStepGuide"
+                android:title="Step by step guide" />
 
 
         </menu>

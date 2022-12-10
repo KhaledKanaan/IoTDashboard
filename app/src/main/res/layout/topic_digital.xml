@@ -84,7 +84,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tag:    "
+                    android:text="Tag:   "
                     android:textColor="#1D2551"
                     android:textStyle="italic" />
 
