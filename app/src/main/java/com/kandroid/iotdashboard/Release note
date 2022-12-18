@@ -13,7 +13,6 @@ IoTDashboard Release Note:
 >Features:
 - Replace regex method with Gson library to read google-services.json file
 - Handle missing information and wrong format in google-service.json file
-- Replace deprecated startActivityForResult with registerForActivityResult method
 - Add the 'About' section in the navigation drawer
 - Update error management in the login activity
 - Update error management in the sign up activity
@@ -22,10 +21,14 @@ IoTDashboard Release Note:
 - Change "Full tag" to "Path" in topic's settings
 - Add EULA
 - Add Privacy Policy
+- Add Step-by-step guide
 
 >Fixed bugs:
 - Fix the feedback node problem on topic rename
 - Fix string numbers handling in "AnalogTopicConfigurationActivity"
 - Fix recurrent listeners problem
 - Fix synchronization problem between multiple devices
-- Fix rename thing problem (non deleted kapprevious thing)
+- Fix rename thing problem (non deleted previous thing)
+- Fix lost connection in topics activity
+- Fix deprecated fromHtml function
+- Replace deprecated startActivityForResult with registerForActivityResult method

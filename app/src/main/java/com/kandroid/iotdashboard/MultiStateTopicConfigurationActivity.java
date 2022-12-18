@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.text.HtmlCompat;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -30,6 +31,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -69,7 +71,7 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
 
     private DatabaseReference IoT_Database;
 
-    private ValueEventListener listener;
+    private ValueEventListener listener, maintainedConnectionListener, connectedRefListener;
 
     public static List<String> topicTagsList = new ArrayList<String>();
 
@@ -212,7 +214,7 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle("Warning!")
                     .setMessage("You are about to change the topic tag, continue?")
-                    .setPositiveButton(Html.fromHtml("<font color='black'>Yes</font>"), new DialogInterface.OnClickListener() {
+                    .setPositiveButton(HtmlCompat.fromHtml("<font color='black'>Yes</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
@@ -261,7 +263,7 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
                             }
                         }
                     })
-                    .setNegativeButton(Html.fromHtml("<font color='black'>Cancel</font>"), new DialogInterface.OnClickListener() {
+                    .setNegativeButton(HtmlCompat.fromHtml("<font color='black'>Cancel</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
@@ -313,7 +315,7 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
 
                         .setTitle("Topic path:")
                         .setMessage(Tag)
-                        .setPositiveButton(Html.fromHtml("<font color='black'><small>Copy to clipboard</small></font>"), new DialogInterface.OnClickListener() {
+                        .setPositiveButton(HtmlCompat.fromHtml("<font color='black'><small>Copy to clipboard</small></font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 if(!Tag.isEmpty()){
@@ -325,7 +327,7 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
                                 }
                             }
                         })
-                        .setNegativeButton(Html.fromHtml("<font color='black'><small>Back</small></font>"), new DialogInterface.OnClickListener() {
+                        .setNegativeButton(HtmlCompat.fromHtml("<font color='black'><small>Back</small></font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
@@ -381,6 +383,32 @@ public class MultiStateTopicConfigurationActivity extends AppCompatActivity {
 
         retrieveSettingsValuesFromFirebaseDatabase();
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        maintainTheConnectionToFirebase();
+    }
+
+    public void maintainTheConnectionToFirebase(){
+        if(!FirebaseApp.getApps(getApplicationContext()).isEmpty()) {
+            DatabaseReference maintainConnectionRef = FirebaseDatabase.getInstance().getReference().child(LauncherActivity.MAINTAINED_CONNECTION_POINT);
+            if (maintainConnectionRef != null) {
+                maintainConnectionRef.setValue(true);
+                maintainedConnectionListener = maintainConnectionRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Log.i(TAG, LauncherActivity.MAINTAINED_CONNECTION_POINT +" > "+ dataSnapshot.getValue());
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        }
     }
 
     @Override

@@ -36,7 +36,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
-                android:text=" By using IoTDashboard App, you confirm that you read and agreed to the End-User License Agreement (EULA) and to the Privacy Policy linked below.">
+                android:text=" By using IoTDashboard App, you confirm that you have read and agreed to the End-User License Agreement (EULA) and to the Privacy Policy listed below.">
             </TextView>
 
             <TextView

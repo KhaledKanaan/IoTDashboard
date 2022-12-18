@@ -5,14 +5,14 @@ plugins {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
     buildToolsVersion "29.0.3"
 
     defaultConfig {
 
         applicationId "com.kandroid.iotdashboard"
         minSdkVersion 26
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 
@@ -74,6 +74,8 @@ dependencies {
     implementation 'org.apache.commons:commons-text:1.9'
 
     implementation 'com.obsez.android.lib.filechooser:filechooser:1.1.19'
+
+    implementation "androidx.core:core:1.9.0"
 }
 
 repositories {

@@ -7,6 +7,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
+import androidx.core.text.HtmlCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -152,10 +153,10 @@ public class MainActivity extends AppCompatActivity {
 
                     AlertDialog Dialog = new AlertDialog.Builder(this)
                             .setIcon(R.drawable.ic_baseline_add_30)
-                            .setTitle(Html.fromHtml("<font color='#333333'>Thing</font>"))
+                            .setTitle(HtmlCompat.fromHtml("<font color='#333333'>Thing</font>", HtmlCompat.FROM_HTML_MODE_LEGACY))
                             .setView(promptsView)
-                            .setPositiveButton(Html.fromHtml("<font color='black'>Ok</font>"), null)
-                            .setNegativeButton(Html.fromHtml("<font color='black'>Cancel</font>"), new DialogInterface.OnClickListener() {
+                            .setPositiveButton(HtmlCompat.fromHtml("<font color='black'>Ok</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), null)
+                            .setNegativeButton(HtmlCompat.fromHtml("<font color='black'>Cancel</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     // Your code if no
@@ -273,10 +274,10 @@ public class MainActivity extends AppCompatActivity {
 
             AlertDialog Dialog = new AlertDialog.Builder(this)
                     .setIcon(R.drawable.ic_baseline_edit_30)
-                    .setTitle(Html.fromHtml("<font color='#333333'>Edit thing</font>"))
+                    .setTitle(HtmlCompat.fromHtml("<font color='#333333'>Edit thing</font>", HtmlCompat.FROM_HTML_MODE_LEGACY))
                     .setView(promptsView)
-                    .setPositiveButton(Html.fromHtml("<font color='black'>Ok</font>"), null)
-                    .setNegativeButton(Html.fromHtml("<font color='black'>Cancel</font>"), new DialogInterface.OnClickListener() {
+                    .setPositiveButton(HtmlCompat.fromHtml("<font color='black'>Ok</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), null)
+                    .setNegativeButton(HtmlCompat.fromHtml("<font color='black'>Cancel</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
@@ -313,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
                                                                 .setIcon(android.R.drawable.ic_dialog_alert)
                                                                 .setTitle("Warning!")
                                                                 .setMessage("You are about to change the thing tag, continue?")
-                                                                .setPositiveButton(Html.fromHtml("<font color='black'>Yes</font>"), new DialogInterface.OnClickListener() {
+                                                                .setPositiveButton(HtmlCompat.fromHtml("<font color='black'>Yes</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                                                                     @Override
                                                                     public void onClick(DialogInterface dialog, int which) {
 
@@ -345,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
                                                                         }
                                                                     }
                                                                 })
-                                                                .setNegativeButton(Html.fromHtml("<font color='black'>Cancel</font>"), new DialogInterface.OnClickListener() {
+                                                                .setNegativeButton(HtmlCompat.fromHtml("<font color='black'>Cancel</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                                                                     @Override
                                                                     public void onClick(DialogInterface dialog, int which) {
 
@@ -412,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle("Warning!")
                 .setMessage("All topics related to this thing will be erased, continue?")
-                .setPositiveButton(Html.fromHtml("<font color='black'>Yes</font>"), new DialogInterface.OnClickListener() {
+                .setPositiveButton(HtmlCompat.fromHtml("<font color='black'>Yes</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
@@ -431,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .setNegativeButton(Html.fromHtml("<font color='black'>Cancel</font>"), new DialogInterface.OnClickListener() {
+                .setNegativeButton(HtmlCompat.fromHtml("<font color='black'>Cancel</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
@@ -514,9 +515,9 @@ public class MainActivity extends AppCompatActivity {
 
         AlertDialog Dialog = new AlertDialog.Builder(this)
                 .setIcon(R.drawable.ic_baseline_info_24)
-                .setTitle(Html.fromHtml("<font color='#333333'>About</font>"))
+                .setTitle(HtmlCompat.fromHtml("<font color='#333333'>About</font>", HtmlCompat.FROM_HTML_MODE_LEGACY))
                 .setView(promptsView)
-                .setNegativeButton(Html.fromHtml("<font color='black'>Close</font>"), new DialogInterface.OnClickListener() {
+                .setNegativeButton(HtmlCompat.fromHtml("<font color='black'>Close</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 

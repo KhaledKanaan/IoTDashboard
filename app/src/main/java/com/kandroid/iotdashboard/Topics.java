@@ -6,6 +6,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
+import androidx.core.text.HtmlCompat;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -125,10 +126,10 @@ public class  Topics extends AppCompatActivity {
 
         AlertDialog Dialog = new AlertDialog.Builder(this)
                 .setIcon(R.drawable.ic_baseline_add_30)
-                .setTitle(Html.fromHtml("<font color='#333333'>Topic</font>"))
+                .setTitle(HtmlCompat.fromHtml("<font color='#333333'>Topic</font>",HtmlCompat.FROM_HTML_MODE_LEGACY))
                 .setView(promptsView)
-                .setPositiveButton(Html.fromHtml("<font color='black'>Ok</font>"), null)
-                .setNegativeButton(Html.fromHtml("<font color='black'>Cancel</font>"), new DialogInterface.OnClickListener() {
+                .setPositiveButton(HtmlCompat.fromHtml("<font color='black'>Ok</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), null)
+                .setNegativeButton(HtmlCompat.fromHtml("<font color='black'>Cancel</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         // Your code if no
@@ -1496,7 +1497,7 @@ public class  Topics extends AppCompatActivity {
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle("Delete topic?")
                 //.setMessage("All data related to this thing will be erased, continue?")
-                .setPositiveButton(Html.fromHtml("<font color='black'>Yes</font>"), new DialogInterface.OnClickListener() {
+                .setPositiveButton(HtmlCompat.fromHtml("<font color='black'>Yes</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         int indexToBeDeleted = getViewParentTopicCardPosition(view);
@@ -1513,7 +1514,7 @@ public class  Topics extends AppCompatActivity {
                         }
                     }
                 })
-                .setNegativeButton(Html.fromHtml("<font color='black'>Cancel</font>"), new DialogInterface.OnClickListener() {
+                .setNegativeButton(HtmlCompat.fromHtml("<font color='black'>Cancel</font>", HtmlCompat.FROM_HTML_MODE_LEGACY), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
@@ -1814,7 +1815,9 @@ public class  Topics extends AppCompatActivity {
         boolean intentToConnect = sharedPreferences.getBoolean(LauncherActivity.INTENT_TO_CONNECT, false);
         if(intentToConnect) {
 
-            //onAddOrRemoveChildren();
+            getConnectionToFireBaseDataBaseStatus();
+            maintainTheConnectionToFirebase();
+
             new android.os.Handler(Looper.getMainLooper()).postDelayed(
                 new Runnable() {
                     public void run() {
